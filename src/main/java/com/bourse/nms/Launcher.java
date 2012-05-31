@@ -20,10 +20,6 @@ import java.security.ProtectionDomain;
  */
 public class Launcher {
 
-    //add these VM parameters to start: -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -XX:MaxPermSize=128M
-    //for intellij idea in modules -> artifacts: change output directory to sth like this: /home/araz/Projects/bourse/bnmstest/target
-    //and just add bnmstest:war exploded in the output root
-    //set build artifacts bnmstest:war exploded in you application run configuration
     private static final Logger log = Logger.getLogger(Launcher.class);
 
     public static void main(final String[] args) throws ServletException, LifecycleException, URISyntaxException, IOException {

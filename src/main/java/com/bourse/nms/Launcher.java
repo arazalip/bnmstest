@@ -1,22 +1,16 @@
 package com.bourse.nms;
 
-import com.bourse.nms.common.CliUtil;
-import org.apache.catalina.Context;
-import org.apache.catalina.Engine;
-import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Connector;
-import org.apache.catalina.core.StandardThreadExecutor;
-import org.apache.catalina.loader.WebappLoader;
-import org.apache.catalina.realm.MemoryRealm;
-import org.apache.catalina.startup.Embedded;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
+import org.apache.catalina.startup.Tomcat;
 import org.apache.log4j.Logger;
-import org.springframework.util.Assert;
 
+import javax.servlet.ServletException;
 import java.io.File;
-import java.util.Properties;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.ProtectionDomain;
 
 /**
  * Created by IntelliJ IDEA.
@@ -26,138 +20,52 @@ import java.util.Properties;
  */
 public class Launcher {
 
+    //add these VM parameters to start: -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -XX:MaxPermSize=128M
+    //for intellij idea in modules -> artifacts: change output directory to sth like this: /home/araz/Projects/bourse/bnmstest/target
+    //and just add bnmstest:war exploded in the output root
+    //set build artifacts bnmstest:war exploded in you application run configuration
     private static final Logger log = Logger.getLogger(Launcher.class);
 
-    private final String path;
-    private final Embedded container;
-    /**
-     * The classes directory for the web application being run.
-     */
-    @SuppressWarnings("FieldCanBeLocal")
-    private final String classesDir = "target/classes";
+    public static void main(final String[] args) throws ServletException, LifecycleException, URISyntaxException, IOException {
 
-    /**
-     * Creates a single-webapp configuration to be run in Tomcat on port 8089. If module name does
-     * not conform to the 'contextname-webapp' convention, use the two-args constructor.
-     *
-     * @param contextName without leading slash, for example, "mywebapp"
-     */
-    public Launcher(String contextName) {
-        Assert.isTrue(!contextName.startsWith("/"));
-        path = "/" + contextName;
-        // create server
-        container = new Embedded();
+
+        final Tomcat tomcat = new Tomcat();
+
+        tomcat.setPort(8080);  // Default connector
+
+        addConnector(8082, false, tomcat, null);
+        //addConnector(443, true, tomcat, certificateStores);
+
+
+        // Load the war (assumes this class in in root of war file)
+        final ProtectionDomain domain = Launcher.class.getProtectionDomain();
+        //final URL location = domain.getCodeSource().getLocation();
+        final URL location = new File("target/bnmstest-1.0").toURI().toURL();
+
+        System.out.println("Using webapp at " + location.toExternalForm());
+
+
+        tomcat.addWebapp("/", location.toURI().getPath());
+        tomcat.start();
+        tomcat.getServer().await();
     }
 
-    /**
-     * Starts the embedded Tomcat server.
-     *
-     * @param httpPort     tomcat http connector httpPort
-     * @param ajpPort      tomcat ajp connector port
-     * @param catalinaHome catalina home path (needs conf/tomcat-users.xml in it)
-     * @param appBase      appBase path (tomcat/webapps)
-     * @param docBase      docBase path (tomcat/webapps/ROOT)
-     * @throws org.apache.catalina.LifecycleException if the server could not be started
-     */
-    public void run(int httpPort, int ajpPort, String catalinaHome, String docBase, String appBase) throws LifecycleException {
 
-        container.setCatalinaHome(catalinaHome);
-        container.setRealm(new MemoryRealm());
-
-        // create webapp loader
-        final WebappLoader loader = new WebappLoader(this.getClass().getClassLoader());
-
-        loader.addRepository(new File(classesDir).toURI().toString());
-
-        // create context
-        final Context rootContext = container.createContext(path, docBase);
-        rootContext.setLoader(loader);
-        rootContext.setReloadable(false);
-
-        // create host
-        final Host localHost = container.createHost("localhost", appBase);
-        localHost.addChild(rootContext);
-        localHost.setAutoDeploy(false);
-        localHost.setXmlValidation(false);
-        localHost.setXmlNamespaceAware(false);
-
-        // create engine
-        final Engine engine = container.createEngine();
-        engine.setName("localEngine");
-        engine.addChild(localHost);
-        engine.setDefaultHost(localHost.getName());
-        container.addEngine(engine);
-
-        final StandardThreadExecutor executor = new StandardThreadExecutor();
-        executor.setName("tomcatThreadPool");
-        executor.setMaxThreads(1000);
-        executor.setMinSpareThreads(10);
-        executor.setNamePrefix("catalina-exec-");
-        container.addExecutor(executor);
-
-        // create http connector
-        final Connector httpConnector = container.createConnector("0.0.0.0", httpPort, "HTTP/1.1");
-        httpConnector.setProperty("connectionTimeout", "20000");
-        httpConnector.setRedirectPort(8443);
-        httpConnector.setAttribute("executor", executor);
-        container.addConnector(httpConnector);
-
-        // create ajp connector
-        /*
-        Connector ajpConnector = container.createConnector("0.0.0.0", ajpPort, "AJP/1.3");
-        ajpConnector.setRedirectPort(8443);
-        ajpConnector.setAttribute("executor", executor);
-        container.addConnector(ajpConnector);
-        */
-
-        container.setAwait(true);
-
-        // start server
-        container.start();
-
-        // add shutdown hook to stop server
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                stopContainer();
-            }
-        });
-    }
-
-    /**
-     * Stops the embedded Tomcat server.
-     */
-    public void stopContainer() {
-        try {
-            if (container != null) {
-                container.stop();
-            }
-        } catch (LifecycleException exception) {
-            log.warn("Cannot Stop Tomcat" + exception.getMessage());
+    private static void addConnector(final int port, final boolean https, final Tomcat tomcat, final File[] certificateStores) throws IOException {
+        final Connector connector = new Connector();
+        connector.setScheme((https) ? "https" : "http");
+        connector.setPort(port);
+        connector.setProperty("maxPostSize", "0");  // unlimited
+        connector.setProperty("xpoweredBy", "true");
+        if(https) {
+            connector.setSecure(true);
+            connector.setProperty("SSLEnabled","true");
+            connector.setProperty("keyPass", "123456");
+            connector.setProperty("keystoreFile", certificateStores[0].getCanonicalPath());
+            connector.setProperty("keystorePass", "123456");
+            connector.setProperty("truststoreFile", certificateStores[1].getCanonicalPath());
+            connector.setProperty("truststorePass", "123456");
         }
-    }
-
-    private final static Options options = CliUtil.getOptions();
-
-    public static void main(String[] args) throws Exception {
-
-        log.info("NMS is starting up...");
-
-        //should run maven before run. sample program parameters to run webservice
-        //-ch box-webservice/target/classes/tomcat
-        //-ab /home/araz/Projects/sms-engine/box-webservice/target
-        //-db box-webservice-1.0
-        options.addOption("ch", "catalinaHome", true, "specifies catalina home path");
-        options.addOption("db", "docBase", true, "specifies docBase path");
-        options.addOption("ab", "appBase", true, "specifies appBase path");
-        final CommandLine cl = CliUtil.parsArgument(args);
-
-        final Properties prop = new Properties();
-        prop.load(Launcher.class.getClassLoader().getResourceAsStream("webservice.properties"));
-
-        final Launcher inst = new Launcher("");
-        inst.run(Integer.parseInt(prop.getProperty("tomcat-http-port")), Integer.parseInt(prop.getProperty("tomcat-ajp-port")),
-                cl.getOptionValue("catalinaHome"), cl.getOptionValue("docBase"), cl.getOptionValue("appBase"));
-
-        log.info("NMS is up and running...");
+        tomcat.getService().addConnector(connector);
     }
 }

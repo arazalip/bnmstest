@@ -3,12 +3,6 @@ html, body
     margin: 0;
     padding: 0;
 }
-body
-{
-    font: 12px/1.3em Arial, Helvetica, sans-serif;
-    color: #000;
-    background-color: #fff;
-}
 h1, h2, h3, h4, h5
 {
     margin: 0 0 1em;

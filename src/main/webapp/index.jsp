@@ -14,11 +14,16 @@
     <%--<fmt:setLocale value="fa"/>--%>
 </head>
 <body style="direction: rtl;">
-<form action="index.do" method="post">
+<form action="index.do" method="post" enctype="multipart/form-data">
 <div>
-    <label for="programRunTime"><fmt:message key="program_run_time"/></label>
-    <input id="programRunTime" name="programRunTime" type="text"/>
+    <label for="preOpeningRunTime"><fmt:message key="preopening_run_time"/></label>
+    <input id="preOpeningRunTime" name="preOpeningRunTime" type="text"/>
 </div>
+<div>
+    <label for="tradingRunTime"><fmt:message key="trading_run_time"/></label>
+    <input id="tradingRunTime" name="tradingRunTime" type="text"/>
+</div>
+
 <div>
     <label for="totalBuyOrders"><fmt:message key="total_buy_orders"/></label>
     <input id="totalBuyOrders" name="totalBuyOrders" type="text"/>
@@ -35,6 +40,15 @@
     <label for="matchPercent"><fmt:message key="match_percent"/></label>
     <input id="matchPercent" name="matchPercent" type="text"/>
 </div>
+<div>
+    <label for="subscribersFile"><fmt:message key="subscriber_file"/></label>
+    <input id="subscribersFile" name="subscribersFile" type="file"/>
+</div>
+<div>
+    <label for="symbolsFile"><fmt:message key="symbols_file"/></label>
+    <input id="symbolsFile" name="symbolsFile" type="file"/>
+</div>
+
 <div>
     <input type="submit" value="<fmt:message key="submit"/>">
 </div>

@@ -14,7 +14,7 @@ import java.util.Set;
 public interface Generator {
 
     public void setParameters(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount,
-                              int preOpeningOrdersCount, int preOpeningOrdersPercent, Set<Symbol> symbols, Set<Subscriber> customers);
+                              int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols, Set<Subscriber> customers);
 
     public void startProcess();
 

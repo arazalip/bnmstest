@@ -37,6 +37,7 @@ public class CommandServlet extends HttpServlet {
             case "start":
                 try {
                     generator.startProcess();
+                    resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {
                     log.warn("exception on sending start command", e);
                 }

@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.ProtectionDomain;
 
 /**
  * Created by IntelliJ IDEA.
@@ -23,24 +22,12 @@ public class Launcher {
     private static final Logger log = Logger.getLogger(Launcher.class);
 
     public static void main(final String[] args) throws ServletException, LifecycleException, URISyntaxException, IOException {
-
-
         final Tomcat tomcat = new Tomcat();
-
         tomcat.setPort(8080);  // Default connector
-
         addConnector(8082, false, tomcat, null);
         //addConnector(443, true, tomcat, certificateStores);
-
-
-        // Load the war (assumes this class in in root of war file)
-        final ProtectionDomain domain = Launcher.class.getProtectionDomain();
-        //final URL location = domain.getCodeSource().getLocation();
         final URL location = new File("target/bnmstest-1.0").toURI().toURL();
-
-        System.out.println("Using webapp at " + location.toExternalForm());
-
-
+        log.info("Using webapp at " + location.toExternalForm());
         tomcat.addWebapp("/", location.toURI().getPath());
         tomcat.start();
         tomcat.getServer().await();

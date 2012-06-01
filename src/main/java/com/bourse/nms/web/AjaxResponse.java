@@ -1,5 +1,7 @@
 package com.bourse.nms.web;
 
+import com.bourse.nms.common.NMSException;
+
 /**
  * Created by IntelliJ IDEA.
  * User: araz
@@ -16,10 +18,14 @@ public class AjaxResponse {
         this.message = message;
     }
 
+    public AjaxResponse(NMSException e){
+        this.errorCode = e.getErrorCode();
+        this.message = e.getMessage();
+    }
     @Override
     public String toString() {
         return "{" +
-                "errorCode=" + errorCode +
+                "code=" + errorCode +
                 ", message='" + message + '\'' +
                 '}';
     }

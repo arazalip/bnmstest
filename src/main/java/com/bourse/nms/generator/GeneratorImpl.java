@@ -19,7 +19,7 @@ public class GeneratorImpl implements Generator {
 
     @Override
     public void setParameters(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount, int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols, Set<Subscriber> customers)  throws NMSException {
-        log.debug("got data: ");
+        log.debug("got data");
     }
 
     @Override

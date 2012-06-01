@@ -15,4 +15,5 @@
     </bean>
 
     <bean id="generator" class="com.bourse.nms.generator.GeneratorImpl"/>
+    <bean id="settings" class="com.bourse.nms.entity.Settings"/>
 </beans>

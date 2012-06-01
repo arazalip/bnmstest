@@ -40,28 +40,38 @@ public class CommandServlet extends HttpServlet {
                     resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {
                     log.warn("exception on sending start command", e);
+                    resp.getWriter().write(new AjaxResponse(e).toString());
                 }
                 break;
             case "stop":
                 try {
                     generator.stopProcess();
+                    resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {
                     log.warn("exception on sending stop command", e);
+                    resp.getWriter().write(new AjaxResponse(e).toString());
                 }
                 break;
             case "restart":
                 try {
                     generator.restartProcess();
+                    resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {
                     log.warn("exception on sending restart command", e);
+                    resp.getWriter().write(new AjaxResponse(e).toString());
                 }
                 break;
             case "pause":
                 try {
                     generator.pauseProcess();
+                    resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {
                     log.warn("exception on sending pause command", e);
+                    resp.getWriter().write(new AjaxResponse(e).toString());
                 }
+                break;
+            case "subFile":
+                log.info("got sub file");
                 break;
             default:
                 log.warn("unknown command action: " + action);

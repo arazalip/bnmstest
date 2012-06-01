@@ -1,6 +1,7 @@
 package com.bourse.nms.web;
 
 import com.bourse.nms.common.NMSException;
+import com.bourse.nms.entity.Settings;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import com.bourse.nms.generator.Generator;
@@ -22,7 +23,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -45,10 +48,12 @@ public class MainServlet extends HttpServlet{
     public static final String FILE_COLUMN_SEPARATOR = ",";
 
     private Generator generator;
+    private Settings settings;
     public void init(){
         log.info("Main Servlet Init...");
         final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         generator = (Generator) context.getBean("generator");
+        settings = (Settings) context.getBean("settings");
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
@@ -61,39 +66,41 @@ public class MainServlet extends HttpServlet{
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
         try {
-            Map<String, Object> submitData = extractData(req);
-            generator.setParameters((Integer)submitData.get(PRE_OPENING_RUN_TIME),
-                    (Integer)submitData.get(TRADING_RUN_TIME),
-                    (Integer)submitData.get(TOTAL_BUY_ORDERS),
-                    (Integer)submitData.get(TOTAL_SELL_ORDERS),
-                    (Integer)submitData.get(PRE_OPENING_ORDERS),
-                    (Integer)submitData.get(MATCH_PERCENT),
-                    (Set<Symbol>)submitData.get(SYMBOLS_FILE),
-                    (Set<Subscriber>)submitData.get(SUBSCRIBERS_FILE));
+            if(req.getContentType().contains("multipart/form-data"))
+            {
+                final List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+                for (FileItem item : items) {
+                    putFileData(item);
+                }
+            }else{
+                for(String fieldName : req.getParameterMap().keySet()){
+                    putFormField(fieldName, req.getParameter(fieldName));
+                }
+                try {
+                    generator.setParameters(settings.getPreOpeningTime(),
+                            settings.getTradingTime(),
+                            settings.getBuyOrdersCount(),
+                            settings.getSellOrdersCount(),
+                            settings.getPreOpeningOrdersCount(),
+                            settings.getMatchPercent(),
+                            settings.getSymbols(),
+                            settings.getCustomers());
+                } catch (NMSException e) {
+                    log.warn("exception on set parameters", e);
+                    resp.getWriter().write(new AjaxResponse(e).toString());
+                }
+            }
+
+            resp.getWriter().write(new AjaxResponse(0, "OK").toString());
         } catch (FileUploadException e) {
             log.warn("file upload exception!", e);
             throw new ServletException("Cannot parse multipart request.", e);
-        } catch (NMSException e){
-            log.warn("exception on setParameters", e);
         }
 
     }
 
-    private Map<String, Object> extractData(HttpServletRequest req) throws FileUploadException, IOException {
-        final List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
-        final Map<String, Object> result = new HashMap<>();
-        for (FileItem item : items) {
-            if (item.isFormField()) {
-                putFormField(result, item);
-            } else {
-                putFileData(result, item);
-            }
-        }
 
-        return result;
-    }
-
-    private void putFileData(Map<String, Object> result, FileItem item) throws IOException {
+    private void putFileData(FileItem item) throws IOException {
         final String fieldName = item.getFieldName();
         final String fileName = FilenameUtils.getName(item.getName());
         final BufferedReader fileReader = new BufferedReader(new InputStreamReader(item.getInputStream()));
@@ -120,7 +127,7 @@ public class MainServlet extends HttpServlet{
                                 Integer.parseInt(lineArr[11])));
                     }
                 }
-                result.put(SYMBOLS_FILE, symbols);
+                settings.setSymbols(symbols);
                 break;
             case SUBSCRIBERS_FILE:
                 final Set<Subscriber> subscribers = new HashSet<>();
@@ -137,7 +144,7 @@ public class MainServlet extends HttpServlet{
                                 Integer.parseInt(lineArr[2])));
                     }
                 }
-                result.put(SUBSCRIBERS_FILE, subscribers);
+                settings.setCustomers(subscribers);
                 break;
             default:
                 log.warn("unknown file upload: " + fieldName + ": " + fileName);
@@ -145,27 +152,25 @@ public class MainServlet extends HttpServlet{
         }
     }
 
-    private void putFormField(Map<String, Object> result, FileItem item) {
-        final String fieldName = item.getFieldName();
-        final String fieldValue = item.getString();
+    private void putFormField(String fieldName, String fieldValue) {
         switch (fieldName) {
             case PRE_OPENING_RUN_TIME:
-                result.put(PRE_OPENING_RUN_TIME, Integer.parseInt(fieldValue));
+                settings.setPreOpeningTime(Integer.parseInt(fieldValue));
                 break;
             case TRADING_RUN_TIME:
-                result.put(TRADING_RUN_TIME, Integer.parseInt(fieldValue));
+                settings.setTradingTime(Integer.parseInt(fieldValue));
                 break;
             case TOTAL_BUY_ORDERS:
-                result.put(TOTAL_BUY_ORDERS, Integer.parseInt(fieldValue));
+                settings.setBuyOrdersCount(Integer.parseInt(fieldValue));
                 break;
             case TOTAL_SELL_ORDERS:
-                result.put(TOTAL_SELL_ORDERS, Integer.parseInt(fieldValue));
+                settings.setSellOrdersCount(Integer.parseInt(fieldValue));
                 break;
             case PRE_OPENING_ORDERS:
-                result.put(PRE_OPENING_ORDERS, Integer.parseInt(fieldValue));
+                settings.setPreOpeningOrdersCount(Integer.parseInt(fieldValue));
                 break;
             case MATCH_PERCENT:
-                result.put(MATCH_PERCENT, Integer.parseInt(fieldValue));
+                settings.setMatchPercent(Integer.parseInt(fieldValue));
                 break;
             default:
                 log.warn("unknown parameter: " + fieldName + ": " + fieldValue);

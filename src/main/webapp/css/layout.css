@@ -12,19 +12,26 @@ body{
     width: 200px;
 }
 
-.inputDiv input{
-    float: left;
-}
-
-.form{
-    width: 400px;
+.inputDiv input, .inputDiv button{
+    float: right;
 }
 
 #control{
-    padding-right: 100px;
-    padding-top: 50px;
+    margin-right: 100px;
+    margin-top: 50px;
     float: right;
+    width: 400px;
 }
+
+#stats{
+    margin-left: 100px;
+    margin-top: 50px;
+    float: left;
+    width: 700px;
+    height: 370px;
+    background-color: #DDD;
+}
+
 .integer{
     width: 100px;
     direction: ltr;

@@ -1,0 +1,87 @@
+package com.bourse.nms.entity;
+
+import java.util.Set;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: araz
+ * Date: 6/1/12
+ * Time: 7:04 PM
+ */
+public class Settings {
+
+    int preOpeningTime;
+    int tradingTime;
+    int buyOrdersCount;
+    int sellOrdersCount;
+    int preOpeningOrdersCount;
+    int matchPercent;
+    Set<Symbol> symbols;
+    Set<Subscriber> customers;
+
+
+    public int getPreOpeningTime() {
+        return preOpeningTime;
+    }
+
+    public void setPreOpeningTime(int preOpeningTime) {
+        this.preOpeningTime = preOpeningTime;
+    }
+
+    public int getTradingTime() {
+        return tradingTime;
+    }
+
+    public void setTradingTime(int tradingTime) {
+        this.tradingTime = tradingTime;
+    }
+
+    public int getBuyOrdersCount() {
+        return buyOrdersCount;
+    }
+
+    public void setBuyOrdersCount(int buyOrdersCount) {
+        this.buyOrdersCount = buyOrdersCount;
+    }
+
+    public int getSellOrdersCount() {
+        return sellOrdersCount;
+    }
+
+    public void setSellOrdersCount(int sellOrdersCount) {
+        this.sellOrdersCount = sellOrdersCount;
+    }
+
+    public int getPreOpeningOrdersCount() {
+        return preOpeningOrdersCount;
+    }
+
+    public void setPreOpeningOrdersCount(int preOpeningOrdersCount) {
+        this.preOpeningOrdersCount = preOpeningOrdersCount;
+    }
+
+    public int getMatchPercent() {
+        return matchPercent;
+    }
+
+    public void setMatchPercent(int matchPercent) {
+        this.matchPercent = matchPercent;
+    }
+
+    public Set<Symbol> getSymbols() {
+        return symbols;
+    }
+
+    public void setSymbols(Set<Symbol> symbols) {
+        this.symbols = symbols;
+    }
+
+    public Set<Subscriber> getCustomers() {
+        return customers;
+    }
+
+    public void setCustomers(Set<Subscriber> customers) {
+        this.customers = customers;
+    }
+
+}

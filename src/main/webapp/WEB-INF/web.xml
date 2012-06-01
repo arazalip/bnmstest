@@ -31,7 +31,16 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>mainServlet</servlet-name>
-        <url-pattern>*.do</url-pattern>
+        <url-pattern>/index.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>commandServlet</servlet-name>
+        <servlet-class>com.bourse.nms.web.CommandServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>commandServlet</servlet-name>
+        <url-pattern>/command.do</url-pattern>
     </servlet-mapping>
 
     <listener>

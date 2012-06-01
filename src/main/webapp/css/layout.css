@@ -1,0 +1,39 @@
+body{
+    direction: rtl;
+    font-family: tahoma,geneva,sans-serif;
+    font-size: 12px;
+}
+
+.inputDiv{
+    height: 30px;
+}
+.inputDiv label{
+    float: right;
+    width: 200px;
+}
+
+.inputDiv input{
+    float: left;
+}
+
+.form{
+    width: 400px;
+}
+
+#control{
+    padding-right: 100px;
+    padding-top: 50px;
+    float: right;
+}
+.integer{
+    width: 100px;
+    direction: ltr;
+}
+
+.fileUpload{
+    display: none;
+}
+
+.command{
+    width: 400px;
+}

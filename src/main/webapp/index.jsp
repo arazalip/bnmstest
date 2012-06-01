@@ -11,48 +11,76 @@
 <html>
 <head>
     <title></title>
-    <%--<fmt:setLocale value="fa"/>--%>
+    <link type="text/css" rel="stylesheet" href="<c:url value="css/layout.css"/>">
+    <script type="text/javascript" src="<c:url value="js/jquery-1.7.2.min.js"/>"></script>
 </head>
-<body style="direction: rtl;">
+<body>
+<div id="control">
 <form action="index.do" method="post" enctype="multipart/form-data">
-<div>
-    <label for="preOpeningRunTime"><fmt:message key="preopening_run_time"/></label>
-    <input id="preOpeningRunTime" name="preOpeningRunTime" type="text"/>
-</div>
-<div>
-    <label for="tradingRunTime"><fmt:message key="trading_run_time"/></label>
-    <input id="tradingRunTime" name="tradingRunTime" type="text"/>
-</div>
+    <div class="form">
+        <div class="inputDiv">
+            <label for="preOpeningRunTime"><fmt:message key="preopening_run_time"/>:</label>
+            <input id="preOpeningRunTime" name="preOpeningRunTime" type="text" class="integer"/>
+        </div>
+        <div class="inputDiv">
+            <label for="tradingRunTime"><fmt:message key="trading_run_time"/>:</label>
+            <input id="tradingRunTime" name="tradingRunTime" type="text" class="integer"/>
+        </div>
 
-<div>
-    <label for="totalBuyOrders"><fmt:message key="total_buy_orders"/></label>
-    <input id="totalBuyOrders" name="totalBuyOrders" type="text"/>
-</div>
-<div>
-    <label for="totalSellOrders"><fmt:message key="total_sell_orders"/></label>
-    <input id="totalSellOrders" name="totalSellOrders" type="text"/>
-</div>
-<div>
-    <label for="preOpeningOrders"><fmt:message key="pre_opening_orders"/></label>
-    <input id="preOpeningOrders" name="preOpeningOrders" type="text"/>
-</div>
-<div>
-    <label for="matchPercent"><fmt:message key="match_percent"/></label>
-    <input id="matchPercent" name="matchPercent" type="text"/>
-</div>
-<div>
-    <label for="subscribersFile"><fmt:message key="subscriber_file"/></label>
-    <input id="subscribersFile" name="subscribersFile" type="file"/>
-</div>
-<div>
-    <label for="symbolsFile"><fmt:message key="symbols_file"/></label>
-    <input id="symbolsFile" name="symbolsFile" type="file"/>
-</div>
+        <div class="inputDiv">
+            <label for="totalBuyOrders"><fmt:message key="total_buy_orders"/>:</label>
+            <input id="totalBuyOrders" name="totalBuyOrders" type="text" class="integer"/>
+        </div>
+        <div class="inputDiv">
+            <label for="totalSellOrders"><fmt:message key="total_sell_orders"/>:</label>
+            <input id="totalSellOrders" name="totalSellOrders" type="text" class="integer"/>
+        </div>
+        <div class="inputDiv">
+            <label for="preOpeningOrders"><fmt:message key="pre_opening_orders"/>:</label>
+            <input id="preOpeningOrders" name="preOpeningOrders" type="text" class="integer"/>
+        </div>
+        <div class="inputDiv">
+            <label for="matchPercent"><fmt:message key="match_percent"/>:</label>
+            <input id="matchPercent" name="matchPercent" type="text" class="integer"/>
+        </div>
+        <div class="inputDiv">
+            <label for="subscribersFile"><fmt:message key="subscriber_file"/>:</label>
+            <input type = "button" value="<fmt:message key="choose_file"/>"
+                   onclick ="document.getElementById('subscribersFile').click();">
+            <span id="subscribersFileName" style="float: left;"></span>
+            <input id="subscribersFile" name="subscribersFile" type="file" class="fileUpload"
+                   onchange="document.getElementById('subscribersFileName').innerHTML=document.getElementById('subscribersFile').value;"/>
+        </div>
+        <div class="inputDiv">
+            <label for="symbolsFile"><fmt:message key="symbols_file"/>:</label>
+            <input type = "button" value="<fmt:message key="choose_file"/>"
+                   onclick ="document.getElementById('symbolsFile').click();">
+            <span id="symbolsFileName" style="float: left;"></span>
+            <input id="symbolsFile" name="subscribersFile" type="file" class="fileUpload"
+                   onchange="document.getElementById('symbolsFileName').innerHTML=document.getElementById('symbolsFile').value;"/>
+        </div>
 
-<div>
-    <input type="submit" value="<fmt:message key="submit"/>">
-</div>
+        <div  class="inputDiv">
+            <label>&nbsp;</label>
+            <input type="submit" value="<fmt:message key="submit"/>">
+        </div>
+    </div>
 </form>
-
+    <button class="command" onclick="sendCommand('start');"><fmt:message key="start_process"/></button><br/>
+    <button class="command" onclick="sendCommand('pause');"><fmt:message key="pause_process"/></button><br/>
+    <button class="command" onclick="sendCommand('restart');"><fmt:message key="restart_process"/></button><br/>
+    <button class="command" onclick="sendCommand('stop');"><fmt:message key="stop_process"/></button><br/>
+    <script type="text/javascript">
+        function sendCommand(command){
+            $.ajax({
+                type: "GET",
+                dataType: "text",
+                url: "<c:url value="command.do?action="/>" + command
+            }).done(function(data) {
+                alert(data);
+            });
+        }
+    </script>
+</div>
 </body>
 </html>

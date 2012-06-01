@@ -1,5 +1,6 @@
 package com.bourse.nms.generator;
 
+import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import org.apache.log4j.Logger;
@@ -17,7 +18,7 @@ public class GeneratorImpl implements Generator {
     private final static Logger log = Logger.getLogger(GeneratorImpl.class);
 
     @Override
-    public void setParameters(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount, int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols, Set<Subscriber> customers) {
+    public void setParameters(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount, int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols, Set<Subscriber> customers)  throws NMSException {
         log.debug("got data: ");
     }
 
@@ -27,17 +28,17 @@ public class GeneratorImpl implements Generator {
     }
 
     @Override
-    public void pauseProcess() {
+    public void pauseProcess()  throws NMSException{
 
     }
 
     @Override
-    public void restartProcess() {
+    public void restartProcess()  throws NMSException{
 
     }
 
     @Override
-    public void stopProcess() {
+    public void stopProcess()  throws NMSException{
 
     }
 }

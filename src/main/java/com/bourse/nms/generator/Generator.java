@@ -1,5 +1,6 @@
 package com.bourse.nms.generator;
 
+import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 
@@ -14,13 +15,13 @@ import java.util.Set;
 public interface Generator {
 
     public void setParameters(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount,
-                              int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols, Set<Subscriber> customers);
+                              int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols, Set<Subscriber> customers) throws NMSException;
 
-    public void startProcess();
+    public void startProcess() throws NMSException;
 
-    public void pauseProcess();
+    public void pauseProcess() throws NMSException;
 
-    public void restartProcess();
+    public void restartProcess() throws NMSException;
 
-    public void stopProcess();
+    public void stopProcess() throws NMSException;
 }

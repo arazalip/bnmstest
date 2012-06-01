@@ -1,5 +1,6 @@
 package com.bourse.nms.web;
 
+import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import com.bourse.nms.generator.Generator;
@@ -43,6 +44,13 @@ public class MainServlet extends HttpServlet{
     public static final String SUBSCRIBERS_FILE = "subscribersFile";
     public static final String FILE_COLUMN_SEPARATOR = ",";
 
+    private Generator generator;
+    public void init(){
+        log.info("Main Servlet Init...");
+        final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+        generator = (Generator) context.getBean("generator");
+    }
+
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
         RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/index.jsp");
@@ -52,8 +60,6 @@ public class MainServlet extends HttpServlet{
     @SuppressWarnings("unchecked")
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-        final Generator generator = (Generator) context.getBean("generator");
         try {
             Map<String, Object> submitData = extractData(req);
             generator.setParameters((Integer)submitData.get(PRE_OPENING_RUN_TIME),
@@ -65,7 +71,10 @@ public class MainServlet extends HttpServlet{
                     (Set<Symbol>)submitData.get(SYMBOLS_FILE),
                     (Set<Subscriber>)submitData.get(SUBSCRIBERS_FILE));
         } catch (FileUploadException e) {
+            log.warn("file upload exception!", e);
             throw new ServletException("Cannot parse multipart request.", e);
+        } catch (NMSException e){
+            log.warn("exception on setParameters", e);
         }
 
     }

@@ -8,7 +8,7 @@ package com.bourse.nms.entity;
  */
 public class Symbol {
 
-    private final String stockId;
+    private final int stockId;
     private final String name;
     private final String abbrv;
     private final int minimumPriceForBuy;
@@ -20,8 +20,12 @@ public class Symbol {
     private final int minimumCountForSell;
     private final int maximumCountForSell;
     private final int tradePrice;
+    private final int priceRangeForBuy;
+    private final int priceRangeForSell;
+    private final int countRangeForBuy;
+    private final int countRangeForSell;
 
-    public Symbol(String stockId, String name, String abbrv, int minimumPriceForBuy, int maximumPriceForBuy,
+    public Symbol(int stockId, String name, String abbrv, int minimumPriceForBuy, int maximumPriceForBuy,
                   int minimumPriceForSell, int maximumPriceForSell, int minimumCountForBuy, int maximumCountForBuy,
                   int minimumCountForSell, int maximumCountForSell, int tradePrice) {
         this.stockId = stockId;
@@ -36,9 +40,13 @@ public class Symbol {
         this.minimumCountForSell = minimumCountForSell;
         this.maximumCountForSell = maximumCountForSell;
         this.tradePrice = tradePrice;
+        this.priceRangeForBuy = maximumPriceForBuy - minimumPriceForBuy;
+        this.priceRangeForSell = maximumPriceForSell - minimumPriceForSell;
+        this.countRangeForBuy = maximumCountForBuy - minimumCountForBuy;
+        this.countRangeForSell = maximumCountForSell - minimumCountForSell;
     }
 
-    public String getStockId() {
+    public int getStockId() {
         return stockId;
     }
 
@@ -84,5 +92,21 @@ public class Symbol {
 
     public int getTradePrice() {
         return tradePrice;
+    }
+
+    public int getPriceRangeForBuy() {
+        return priceRangeForBuy;
+    }
+
+    public int getPriceRangeForSell() {
+        return priceRangeForSell;
+    }
+
+    public int getCountRangeForBuy() {
+        return countRangeForBuy;
+    }
+
+    public int getCountRangeForSell() {
+        return countRangeForSell;
     }
 }

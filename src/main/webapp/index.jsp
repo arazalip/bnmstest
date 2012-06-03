@@ -123,7 +123,6 @@
              secureuri:use secure protocol
              success: call back function when the ajax complete
              error: callback function when the ajax failed
-
              */
             $.ajaxFileUpload
             (

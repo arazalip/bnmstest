@@ -115,6 +115,7 @@ public class MainServlet extends HttpServlet{
                             log.warn("invalid data line in symbols file: " + line);
                             continue;
                         }
+/*
                         symbols.add(new Symbol(lineArr[0], lineArr[1], lineArr[2],
                                 Integer.parseInt(lineArr[3]),
                                 Integer.parseInt(lineArr[4]),
@@ -125,6 +126,7 @@ public class MainServlet extends HttpServlet{
                                 Integer.parseInt(lineArr[9]),
                                 Integer.parseInt(lineArr[10]),
                                 Integer.parseInt(lineArr[11])));
+*/
                     }
                 }
                 settings.setSymbols(symbols);

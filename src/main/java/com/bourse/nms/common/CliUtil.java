@@ -74,7 +74,6 @@ public class CliUtil {
 
                 System.out.println("Reloading log config in delay (sec): " + delay);
 
-                // todo: see if should use DOMConfigurator based on file extention (e.g. xml)
                 PropertyConfigurator.configureAndWatch(logConfigPath, delay * 1000);
             } else {
                 PropertyConfigurator.configureAndWatch(logConfigPath);

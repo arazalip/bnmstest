@@ -28,7 +28,7 @@ public class GeneratorImpl implements Generator {
     private int sellOrdersCount;
     private int preOpeningBuyOrdersCount;
     private int preOpeningSellOrdersCount;
-    private int matchPercent; //todo: how shall we deal with this?
+    private int matchPercent;
     private ArrayList<Subscriber> customers;
     private Map<Integer, Symbol> symbols;
     private ArrayList<Integer> stockIds;

@@ -27,7 +27,7 @@ public class RandomTest {
                 sellPrice = r.nextInt(mean - sellInterval[0]) + sellInterval[0];
             }else{
                 buyPrice = r.nextInt(mean - buyInterval[0]) + buyInterval[0];
-                sellPrice = r.nextInt(sellInterval[1] - mean) + sellInterval[1];
+                sellPrice = r.nextInt(sellInterval[1] - mean) + mean;
             }
             if(buyPrice >= sellPrice)
                 matchCount++;
@@ -38,6 +38,6 @@ public class RandomTest {
 
     public static void main(String[] args) {
         RandomTest rt = new RandomTest();
-        rt.generatePrices(new int[]{1200, 3500}, new int[]{2000, 4000}, 100000, 30);
+        rt.generatePrices(new int[]{1000, 3500}, new int[]{500, 4000}, 100000, 30);
     }
 }

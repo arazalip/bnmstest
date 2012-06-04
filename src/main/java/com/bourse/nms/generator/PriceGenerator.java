@@ -30,7 +30,7 @@ public class PriceGenerator {
             else return r.nextInt(mean - sellInterval[0]) + sellInterval[0];
         }else{
             if(isBuy) return r.nextInt(mean - buyInterval[0]) + buyInterval[0];
-            else return r.nextInt(sellInterval[1] - mean) + sellInterval[1];
+            else return r.nextInt(sellInterval[1] - mean) + mean;
         }
 
     }

@@ -14,7 +14,7 @@ public class RandomTest {
     public void generatePrices(int[] buyInterval, int[] sellInterval, int totalCount, int matchPercent){
         int minInterval = Math.max(buyInterval[0], sellInterval[0]);
         int maxInterval = Math.min(buyInterval[1], sellInterval[1]);
-        int mean = maxInterval - minInterval / 2;
+        int mean = (maxInterval - minInterval) / 2 + minInterval;
         Random r = new Random();
 
         int matchCount = 0;
@@ -38,6 +38,6 @@ public class RandomTest {
 
     public static void main(String[] args) {
         RandomTest rt = new RandomTest();
-        rt.generatePrices(new int[]{1000, 3500}, new int[]{500, 4000}, 100000, 30);
+        rt.generatePrices(new int[]{100, 3500}, new int[]{500, 2000}, 100000, 30);
     }
 }

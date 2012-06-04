@@ -13,22 +13,23 @@ public class PriceGenerator {
     /**
      * generates random price by price intervals and match percent
      *
-     * @param minimumPriceForBuy
-     * @param maximumPriceForBuy
-     * @param minimumPriceForSell
-     * @param maximumPriceForSell
+     * @param minimumPriceForBuy minimumPriceForBuy
+     * @param maximumPriceForBuy maximumPriceForBuy
+     * @param minimumPriceForSell minimumPriceForSell
+     * @param maximumPriceForSell maximumPriceForSell
      * @param isBuy               order buy or sell
      * @param matchPercent        match percent
      * @return generates order price by match percent
      */
-    public static int randomPrice(int minimumPriceForBuy, int maximumPriceForBuy, int minimumPriceForSell, int maximumPriceForSell,
+    public static int randomPrice(int minimumPriceForBuy, int maximumPriceForBuy,
+                                  int minimumPriceForSell, int maximumPriceForSell,
                                   boolean isBuy, int matchPercent) {
-        int minInterval = Math.max(minimumPriceForBuy, minimumPriceForSell);
-        int maxInterval = Math.min(maximumPriceForBuy, maximumPriceForSell);
-        int mean = maxInterval - minInterval / 2;
-        Random r = new Random();
+        final int minInterval = Math.max(minimumPriceForBuy, minimumPriceForSell);
+        final int maxInterval = Math.min(maximumPriceForBuy, maximumPriceForSell);
+        final int mean = (maxInterval - minInterval) / 2 + minInterval;
+        final Random r = new Random();
 
-        int which = r.nextInt(100);
+        final int which = r.nextInt(100);
         if (which < matchPercent) {
             if (isBuy) return r.nextInt(maximumPriceForBuy - mean) + mean;
             else return r.nextInt(mean - minimumPriceForSell) + minimumPriceForSell;

@@ -17,14 +17,14 @@ body{
 }
 
 #control{
-    margin-right: 100px;
+    margin-right: 50px;
     margin-top: 50px;
     float: right;
-    width: 400px;
+    width: 480px;
 }
 
 #stats{
-    margin-left: 100px;
+    margin-left: 50px;
     margin-top: 50px;
     float: left;
     width: 700px;

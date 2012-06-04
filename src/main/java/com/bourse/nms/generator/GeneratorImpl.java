@@ -6,6 +6,7 @@ import com.bourse.nms.entity.Order;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -17,47 +18,24 @@ import java.util.*;
  */
 public class GeneratorImpl implements Generator {
     private static Logger log = Logger.getLogger(GeneratorImpl.class);
-    private final Engine engine;
+    @Autowired
+    private Engine engine;
     private boolean working;
 
-    private final int preOpeningTime;   //in minutes
-    private final int tradingTime;  //in minutes
-    private final int buyOrdersCount;
-    private final int sellOrdersCount;
-    private final int preOpeningBuyOrdersCount;
-    private final int preOpeningSellOrdersCount;
-    private final int matchPercent; //todo: how shall we deal with this?
-    private final ArrayList<Subscriber> customers;
-    private final Map<Integer, Symbol> symbols;
-    private final ArrayList<Integer> stockIds;
-    private final int stocksCount;
+    private int preOpeningTime;   //in minutes
+    private int tradingTime;  //in minutes
+    private int buyOrdersCount;
+    private int sellOrdersCount;
+    private int preOpeningBuyOrdersCount;
+    private int preOpeningSellOrdersCount;
+    private int matchPercent; //todo: how shall we deal with this?
+    private ArrayList<Subscriber> customers;
+    private Map<Integer, Symbol> symbols;
+    private ArrayList<Integer> stockIds;
+    private int stocksCount;
 
-    public GeneratorImpl(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount,
-                         int preOpeningBuyOrdersCount, int preOpeningSellOrdersCount, int matchPercent,
-                         Set<Symbol> symbols, Set<Subscriber> customers, Engine engine) {
-        this.preOpeningTime = preOpeningTime;
-        this.tradingTime = tradingTime;
-        this.buyOrdersCount = buyOrdersCount;
-        this.sellOrdersCount = sellOrdersCount;
-        this.preOpeningBuyOrdersCount = preOpeningBuyOrdersCount;
-        this.preOpeningSellOrdersCount = preOpeningSellOrdersCount;
-        this.matchPercent = matchPercent;
-        this.engine = engine;
+    public GeneratorImpl() {
 
-        this.symbols = new HashMap<>();
-        this.stockIds = new ArrayList<>(symbols.size());
-        for (Symbol s : symbols) {
-            this.symbols.put(s.getStockId(), s);
-            this.stockIds.add(s.getStockId());
-        }
-        this.stocksCount = stockIds.size();
-
-        this.customers = new ArrayList<>(customers.size());
-        for (Subscriber s : customers) {
-            this.customers.add(s);
-        }
-
-        working = true;
     }
 
     public Order randomOrder(Order.OrderSide orderSide) {
@@ -96,9 +74,30 @@ public class GeneratorImpl implements Generator {
 
     @Override
     public void setParameters(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount,
-                              int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols,
-                              Set<Subscriber> customers) {
+                              int preOpeningBuyOrdersCount, int preOpeningSellOrdersCount, int matchPercent,
+                              Set<Symbol> symbols, Set<Subscriber> customers) {
+        this.preOpeningTime = preOpeningTime;
+        this.tradingTime = tradingTime;
+        this.buyOrdersCount = buyOrdersCount;
+        this.sellOrdersCount = sellOrdersCount;
+        this.preOpeningBuyOrdersCount = preOpeningBuyOrdersCount;
+        this.preOpeningSellOrdersCount = preOpeningSellOrdersCount;
+        this.matchPercent = matchPercent;
 
+        this.symbols = new HashMap<>();
+        this.stockIds = new ArrayList<>(symbols.size());
+        for (Symbol s : symbols) {
+            this.symbols.put(s.getStockId(), s);
+            this.stockIds.add(s.getStockId());
+        }
+        this.stocksCount = stockIds.size();
+
+        this.customers = new ArrayList<>(customers.size());
+        for (Subscriber s : customers) {
+            this.customers.add(s);
+        }
+
+        working = true;
     }
 
     @Override
@@ -117,13 +116,30 @@ public class GeneratorImpl implements Generator {
     }
 
     private void preopeningGeneration() {
-        final long defaultWaitTime = this.preOpeningTime * 60 * 1000 / (preOpeningBuyOrdersCount + preOpeningSellOrdersCount);
+        final long defaultWaitTime = (this.preOpeningTime * 60 * 1000 / (preOpeningBuyOrdersCount + preOpeningSellOrdersCount)) * 2;
 
         //pre-opening sell orders
-        generate(defaultWaitTime, preOpeningSellOrdersCount, Order.OrderSide.SELL);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                generate(defaultWaitTime, preOpeningSellOrdersCount, Order.OrderSide.SELL);
+            }
+        }).start();
 
         //pre-opening buy orders
-        generate(defaultWaitTime, preOpeningBuyOrdersCount, Order.OrderSide.BUY);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                generate(defaultWaitTime, preOpeningBuyOrdersCount, Order.OrderSide.BUY);
+            }
+        }).start();
+
+
+        try {
+            Thread.sleep(preOpeningTime * 60 * 1000);
+        } catch (InterruptedException e) {
+            log.warn("exception on waiting for pre-opening time",e);
+        }
     }
 
     private void generate(long defaultLatency, int totalOrders, Order.OrderSide orderside) {
@@ -135,7 +151,7 @@ public class GeneratorImpl implements Generator {
                 try {
                     Thread.sleep(latency);
                 } catch (InterruptedException e) {
-                    log.warn("Couldn't wait properly");
+                    log.warn("Couldn't wait properly", e);
                 }
         }
     }
@@ -199,11 +215,12 @@ public class GeneratorImpl implements Generator {
         customers.add(new Subscriber(2, 2, 2));
         customers.add(new Subscriber(3, 3, 3));
 
-        Generator generator = new GeneratorImpl(preopeningTime, tradingTime, buyOrdersCount, sellOrdersCount,
-                preopeningBuyOrdersCount, preopeningSellOrdersCount, matchPercent, symbols, customers, engine);
-        log.info("starting test @ " + System.nanoTime());
+        Generator generator = new GeneratorImpl();
         //testing this will throw NullPointerException right now...
         try {
+            generator.setParameters(preopeningTime, tradingTime, buyOrdersCount, sellOrdersCount,
+                    preopeningBuyOrdersCount, preopeningSellOrdersCount, matchPercent, symbols, customers);
+            log.info("starting test @ " + System.nanoTime());
             generator.startProcess();
         } catch (NMSException e) {
             e.printStackTrace();

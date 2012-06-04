@@ -81,7 +81,8 @@ public class MainServlet extends HttpServlet{
                             settings.getTradingTime(),
                             settings.getBuyOrdersCount(),
                             settings.getSellOrdersCount(),
-                            settings.getPreOpeningOrdersCount(),
+                            settings.getPreOpeningOrdersCount()/2,
+                            settings.getPreOpeningOrdersCount()/2,
                             settings.getMatchPercent(),
                             settings.getSymbols(),
                             settings.getCustomers());
@@ -115,8 +116,7 @@ public class MainServlet extends HttpServlet{
                             log.warn("invalid data line in symbols file: " + line);
                             continue;
                         }
-/*
-                        symbols.add(new Symbol(lineArr[0], lineArr[1], lineArr[2],
+                        symbols.add(new Symbol(Integer.parseInt(lineArr[0]), lineArr[1], lineArr[2],
                                 Integer.parseInt(lineArr[3]),
                                 Integer.parseInt(lineArr[4]),
                                 Integer.parseInt(lineArr[5]),
@@ -126,7 +126,6 @@ public class MainServlet extends HttpServlet{
                                 Integer.parseInt(lineArr[9]),
                                 Integer.parseInt(lineArr[10]),
                                 Integer.parseInt(lineArr[11])));
-*/
                     }
                 }
                 settings.setSymbols(symbols);

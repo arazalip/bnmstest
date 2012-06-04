@@ -15,7 +15,8 @@ import java.util.Set;
 public interface Generator {
 
     public void setParameters(int preOpeningTime, int tradingTime, int buyOrdersCount, int sellOrdersCount,
-                              int preOpeningOrdersCount, int matchPercent, Set<Symbol> symbols, Set<Subscriber> customers) throws NMSException;
+                              int preOpeningBuyOrdersCount, int preOpeningSellOrdersCount, int matchPercent,
+                              Set<Symbol> symbols, Set<Subscriber> customers) throws NMSException;
 
     public void startProcess() throws NMSException;
 

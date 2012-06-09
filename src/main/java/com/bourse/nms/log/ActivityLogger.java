@@ -9,7 +9,7 @@ package com.bourse.nms.log;
 public class ActivityLogger {
 
     public void log(String msg){
-
+        //System.err.println("##ACLOG: " + msg);
     }
 
 }

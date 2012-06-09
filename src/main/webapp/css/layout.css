@@ -27,8 +27,8 @@ body{
     margin-left: 50px;
     margin-top: 50px;
     float: left;
-    width: 700px;
-    height: 370px;
+    width: 750px;
+    height: 390px;
     background-color: #DDD;
 }
 
@@ -42,5 +42,5 @@ body{
 }
 
 .command{
-    width: 400px;
+    width: 480px;
 }

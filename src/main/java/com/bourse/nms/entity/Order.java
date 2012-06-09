@@ -13,7 +13,7 @@ public class Order implements Comparable {
         SELL
     }
 
-    //    private final OrderType type;     not needed in this phase
+//    private final OrderType type;     not needed in this phase
 //    private final OrderValidity validity;     not needed in this phase
 //    private final int orderQuantity;      not needed in this phase, we'll only use totalQuantity
     private final int stockId;
@@ -68,11 +68,14 @@ public class Order implements Comparable {
         final long priceDif = price - order.getPrice();
         if (priceDif == 0) {
             final int priorityDif = subscriberPriority - order.getSubscriberPriority();
-            if (subscriberPriority == 0) {
+            if (priorityDif == 0) {
                 return (int) (order.getCreationTime() - creationTime);
             } else {
                 return priorityDif;
             }
-        } else return (int) priceDif;
+        } if(order.getOrderSide().equals(OrderSide.BUY)) return -1 * (int) priceDif;
+        else return (int) priceDif;
     }
+
+
 }

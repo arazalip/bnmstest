@@ -60,7 +60,7 @@ public class GeneratorImpl implements Generator {
         return new Order(symbol.getStockId(), totalQuantity, subscriber.getId(), orderSide, price, subscriber.getPriority());
     }
 
-    private void putToQueue(Order order) {
+    private void putToQueue(Order order) throws NMSException {
         engine.putOrder(order);
     }
 
@@ -145,7 +145,11 @@ public class GeneratorImpl implements Generator {
     private void generate(long defaultLatency, int totalOrders, Order.OrderSide orderside) {
         for (int counter = 0; working && counter < totalOrders; counter++) {
             final long startTime = System.currentTimeMillis();
-            putToQueue(randomOrder(orderside));
+            try {
+                putToQueue(randomOrder(orderside));
+            } catch (NMSException e) {
+                log.warn("Exception on putToQueue", e);
+            }
             final long latency = defaultLatency - (System.currentTimeMillis() - startTime);
             if (latency > 0)
                 try {

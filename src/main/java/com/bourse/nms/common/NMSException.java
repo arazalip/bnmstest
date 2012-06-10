@@ -12,7 +12,8 @@ public class NMSException extends Exception {
 
     public enum ErrorCode {
         SUCCESS(0),
-        INVALID_STATE_FOR_PUT_ORDER(-1);
+        INVALID_STATE_FOR_PUT_ORDER(-1),
+        FILE_UPLOAD_EXCEPTION(-2);
 
         private ErrorCode(int code){
             this.code = code;

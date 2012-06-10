@@ -95,6 +95,7 @@ public class MainServlet extends HttpServlet{
             resp.getWriter().write(new AjaxResponse(0, "OK").toString());
         } catch (FileUploadException e) {
             log.warn("file upload exception!", e);
+            resp.getWriter().write(new AjaxResponse(new NMSException(NMSException.ErrorCode.FILE_UPLOAD_EXCEPTION, "file upload failed")).toString());
             throw new ServletException("Cannot parse multipart request.", e);
         }
 

@@ -3,16 +3,6 @@ html, body
     margin: 0;
     padding: 0;
 }
-h1, h2, h3, h4, h5
-{
-    margin: 0 0 1em;
-    color: #F2683E;
-}
-h1
-{
-    font-size: 18px;
-    font-weight: normal;
-}
 p{margin: 0 0 1em;}
 a,
 a:link,

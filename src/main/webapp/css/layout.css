@@ -3,6 +3,25 @@ body{
     font-family: Tahoma,serif;
     font-size: 12px;
 }
+#header{
+    height: 100px;
+    width: 100%;
+}
+#header h1{
+    text-align: right;
+    margin-top: 20px;
+    margin-right: 50px;
+    width: 400px;
+    float: right;
+    font-family: Georgia, serif;
+}
+#header img{
+    float:left;
+    width: 50px;
+    height: 50px;
+    margin-left: 50px;
+    margin-top: 20px;
+}
 
 .inputDiv{
     height: 30px;
@@ -18,16 +37,30 @@ body{
 
 #control{
     margin-right: 50px;
-    margin-top: 50px;
     float: right;
-    width: 480px;
+    width: 390px;
+}
+
+.help{
+    width: 20px;
+    height: 20px;
+    float: right;
+}
+.help:hover{
+    cursor: pointer;
+}
+
+.helpDiv{
+    display: none;
+    width: 400px;
+    height: 400px;
+    background-color: #FFFFFF;
 }
 
 #stats{
     margin-left: 50px;
-    margin-top: 50px;
     float: left;
-    width: 750px;
+    width: 835px;
     height: 390px;
     background-color: #DDD;
 }
@@ -42,5 +75,5 @@ body{
 }
 
 .command{
-    width: 480px;
+    width: 390px;
 }

@@ -14,45 +14,61 @@
     <link type="text/css" rel="stylesheet" href="<c:url value="css/layout.css"/>">
     <script type="text/javascript" src="<c:url value="js/jquery-1.7.2.min.js"/>"></script>
     <script type='text/javascript' src='<c:url value="js/ajaxfileupload.js"/>'></script>
+    <script type='text/javascript' src='<c:url value="js/modal.popup.js"/>'></script>
     <link rel="stylesheet" type="text/css" href="<c:url value="css/ajaxfileupload.css"/>"/>
-
 </head>
 <body>
-<img id="loading" style="display:none;" src="<c:url value="img/loading.gif"/>" alt="loading">
+<div id="header">
+<h1><fmt:message key="application.title"/></h1>
+<img src="<c:url value="/img/blogo.jpg"/>" alt="logo">
+</div>
+<img id="loading" style="display:none;position: fixed;left: 50%;top: 20%" src="<c:url value="img/loading.gif"/>" alt="loading">
 <div id="control">
     <div class="inputDiv">
         <label for="subscribersFile"><fmt:message key="subscriber_file"/>:</label>
+        <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="subhelp">
         <button onclick ="document.getElementById('subscribersFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
+<%--
         <button onclick ="fileUpload('<c:url value="index.do"/>','subscribersFile');return false;">
             <fmt:message key="send_file"/>
         </button>
-        <span id="subscribersFileName" style="float: left;"></span>
+--%>
+        <span id="subscribersFileName" style="float: left;margin-right: 10px;"></span>
         <input id="subscribersFile" name="subscribersFile" type="file" class="fileUpload"
-               onchange="document.getElementById('subscribersFileName').innerHTML=document.getElementById('subscribersFile').value;"/>
+               onchange="fileUpload('<c:url value="index.do"/>','subscribersFile');
+                       document.getElementById('subscribersFileName').innerHTML=document.getElementById('subscribersFile').value;
+                       return false;"/>
     </div>
     <div class="inputDiv">
         <label for="symbolsFile"><fmt:message key="symbols_file"/>:</label>
+        <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="symhelp">
         <button onclick ="document.getElementById('symbolsFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
+<%--
         <button onclick ="fileUpload('<c:url value="index.do"/>','symbolsFile');return false;">
             <fmt:message key="send_file"/>
         </button>
-        <span id="symbolsFileName" style="float: left;"></span>
+--%>
+        <span id="symbolsFileName" style="float: left;margin-right: 10px;"></span>
         <input id="symbolsFile" name="symbolsFile" type="file" class="fileUpload"
-               onchange="document.getElementById('symbolsFileName').innerHTML=document.getElementById('symbolsFile').value;"/>
+               onchange="fileUpload('<c:url value="index.do"/>','symbolsFile');
+                       document.getElementById('symbolsFileName').innerHTML=document.getElementById('symbolsFile').value;
+                       return false;"/>
     </div>
     <form id="settingsForm" action="">
         <div class="form">
             <div class="inputDiv">
                 <label for="preOpeningRunTime"><fmt:message key="preopening_run_time"/>:</label>
                 <input id="preOpeningRunTime" name="preOpeningRunTime" type="text" class="integer"/>
+                <span style="margin-right: 10px;"><fmt:message key="minute"/></span>
             </div>
             <div class="inputDiv">
                 <label for="tradingRunTime"><fmt:message key="trading_run_time"/>:</label>
                 <input id="tradingRunTime" name="tradingRunTime" type="text" class="integer"/>
+                <span style="margin-right: 10px;"><fmt:message key="minute"/></span>
             </div>
 
             <div class="inputDiv">
@@ -78,7 +94,6 @@
             </div>
         </div>
     </form>
-
     <hr/>
     <button class="command" onclick="sendCommand('start');"><fmt:message key="start_process"/></button><br/>
     <button class="command" onclick="sendCommand('pause');"><fmt:message key="pause_process"/></button><br/>
@@ -109,6 +124,7 @@
         {
             $("#loading")
                 .ajaxStart(function(){
+                    $(this).center();
                     $(this).show();
                 })
                 .ajaxComplete(function(){
@@ -133,7 +149,7 @@
                     dataType:"text",
                     //dataType: 'json',
                     success: function(data){
-                        alert(data);
+                        alert(data.replace(/<pre>/g,'').replace(/<\/pre>/g,''));
                     },
                     error: function (data, status, e)
                     {
@@ -143,6 +159,32 @@
             );
             return false;
         }
+
+        $(document).ready(function() {
+
+            //Change these values to style your modal popup
+            var align = 'center';									//Valid values; left, right, center
+            var top = 30; 											//Use an integer (in pixels)
+            var width = 500; 										//Use an integer (in pixels)
+            var padding = 10;										//Use an integer (in pixels)
+            var backgroundColor = '#FFFFFF'; 						//Use any hex code
+            var borderColor = '#333333'; 							//Use any hex code
+            var borderWeight = 4; 									//Use an integer (in pixels)
+            var borderRadius = 5; 									//Use an integer (in pixels)
+            var fadeOutTime = 300; 									//Use any integer, 0 = no fade
+            var disableColor = '#666666'; 							//Use any hex code
+            var disableOpacity = 40; 								//Valid range 0-100
+            var loadingImage = '<c:url value="/img/loading.gif"/>';		//Use relative path from this page
+
+            //This method initialises the modal popup
+            $("#subhelp").click(function() {
+                modalPopup(align, top, width, padding, disableColor, disableOpacity, backgroundColor, borderColor, borderWeight, borderRadius, fadeOutTime, '<c:url value="subhelp.jsp"/>', loadingImage);
+            });
+            $("#symhelp").click(function() {
+                modalPopup(align, top, width, padding, disableColor, disableOpacity, backgroundColor, borderColor, borderWeight, borderRadius, fadeOutTime, '<c:url value="symhelp.jsp"/>', loadingImage);
+            });
+
+        });
 
     </script>
 </div>

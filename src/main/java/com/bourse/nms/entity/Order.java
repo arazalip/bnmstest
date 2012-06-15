@@ -20,7 +20,7 @@ public class Order implements Comparable {
     public Order(int totalQuantity, byte subscriberId, long price, int subscriberPriority) {
         this.totalQuantity = totalQuantity;
         this.subscriberId = subscriberId;
-        long timeFactor = Long.MAX_VALUE - System.nanoTime();
+        final long timeFactor = Long.MAX_VALUE - System.nanoTime();
         this.orderCode = buildOrderCode(price, subscriberPriority, timeFactor);
     }
 
@@ -51,9 +51,7 @@ public class Order implements Comparable {
     }
 
     private long buildOrderCode(long price, int priority, long time) {
-        return (long) ((price & 0x7FFFF) * Math.pow(2, 44)) |
-                (long) ((priority & 0x0F) * Math.pow(2, 40)) |
-                (time & 0xFFFFFFFFFFl);
+        return (price & 0x7FFFFl) << 44 | ((priority & 0x0Fl) << 40) | (time & 0xFFFFFFFFFFl);
     }
 
     public static void main(String[] args) {
@@ -64,8 +62,7 @@ public class Order implements Comparable {
         System.out.println(priority & 0x0F);
         System.out.println(price & 0x7FFFF);
 
-        //goddammit! shifting bits isn't available for 8Byte types...
-        final long orderCode = (long) ((price & 0x7FFFF) * Math.pow(2, 44)) | (long) ((priority & 0x0F) * Math.pow(2, 40)) | (time & 0xFFFFFFFFFFl);
+        final long orderCode = ((price & 0x7FFFFl) << 44) | ((priority & 0x0Fl) << 40) | (time & 0xFFFFFFFFFFl);
         System.out.println(orderCode);
 
         final long fetchedPrice = (orderCode & 0xFFFFF00000000000l) >> 44;

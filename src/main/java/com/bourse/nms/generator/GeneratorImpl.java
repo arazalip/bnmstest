@@ -3,6 +3,7 @@ package com.bourse.nms.generator;
 import com.bourse.nms.common.NMSException;
 import com.bourse.nms.engine.Engine;
 import com.bourse.nms.entity.Order;
+import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import org.apache.log4j.Logger;
@@ -38,12 +39,12 @@ public class GeneratorImpl implements Generator {
 
     }
 
-    public Order randomOrder(Order.OrderSide orderSide) {
+    public Order randomOrder(OrderSide orderSide, int stockId) {
         final Random random = new Random();
-        final boolean isBuy = orderSide.equals(Order.OrderSide.BUY);
+        final boolean isBuy = orderSide.equals(OrderSide.BUY);
 
         //decide symbol
-        final Symbol symbol = getSymbolWithId(stockIds.get(random.nextInt(stocksCount)));
+        final Symbol symbol = getSymbolWithId(stockId);
 
         //decide quantity
         final int quantityRange = isBuy ? symbol.getCountRangeForBuy() : symbol.getCountRangeForSell();
@@ -57,11 +58,11 @@ public class GeneratorImpl implements Generator {
         final int price = PriceGenerator.randomPrice(symbol.getMinimumPriceForBuy(), symbol.getMaximumPriceForBuy(),
                 symbol.getMinimumPriceForSell(), symbol.getMaximumPriceForSell(), isBuy, this.matchPercent);
 
-        return new Order(symbol.getStockId(), totalQuantity, subscriber.getId(), orderSide, price, subscriber.getPriority());
+        return new Order(totalQuantity, (byte) subscriber.getId(), price, subscriber.getPriority());
     }
 
-    private void putToQueue(Order order) throws NMSException {
-        engine.putOrder(order);
+    private void putToQueue(Order order, OrderSide orderSide, int stockId) throws NMSException {
+        engine.putOrder(order, orderSide, stockId);
     }
 
     private Subscriber randomSubscriber() {
@@ -109,8 +110,8 @@ public class GeneratorImpl implements Generator {
 
         log.info("starting trading session");
         engine.startTrading();
-        final Thread buyOrderGenerator = new Thread(new CountBasedOrderGenerator(Order.OrderSide.BUY, tradingTime));
-        final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(Order.OrderSide.SELL, tradingTime));
+        final Thread buyOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.BUY, tradingTime));
+        final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.SELL, tradingTime));
         buyOrderGenerator.start();
         sellOrderGenerator.start();
     }
@@ -122,7 +123,7 @@ public class GeneratorImpl implements Generator {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                generate(defaultWaitTime, preOpeningSellOrdersCount, Order.OrderSide.SELL);
+                generate(defaultWaitTime, preOpeningSellOrdersCount, OrderSide.SELL);
             }
         }).start();
 
@@ -130,7 +131,7 @@ public class GeneratorImpl implements Generator {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                generate(defaultWaitTime, preOpeningBuyOrdersCount, Order.OrderSide.BUY);
+                generate(defaultWaitTime, preOpeningBuyOrdersCount, OrderSide.BUY);
             }
         }).start();
 
@@ -138,15 +139,17 @@ public class GeneratorImpl implements Generator {
         try {
             Thread.sleep(preOpeningTime * 60 * 1000);
         } catch (InterruptedException e) {
-            log.warn("exception on waiting for pre-opening time",e);
+            log.warn("exception on waiting for pre-opening time", e);
         }
     }
 
-    private void generate(long defaultLatency, int totalOrders, Order.OrderSide orderside) {
+    private void generate(long defaultLatency, int totalOrders, OrderSide orderside) {
+        final Random random = new Random();
         for (int counter = 0; working && counter < totalOrders; counter++) {
             final long startTime = System.currentTimeMillis();
             try {
-                putToQueue(randomOrder(orderside));
+                final int stockId = stockIds.get(random.nextInt(stocksCount));
+                putToQueue(randomOrder(orderside, stockId), orderside, stockId);
             } catch (NMSException e) {
                 log.warn("Exception on putToQueue", e);
             }
@@ -180,14 +183,14 @@ public class GeneratorImpl implements Generator {
 
     class CountBasedOrderGenerator implements Runnable {
         private final long tradingDuration;
-        private final Order.OrderSide orderSide;
+        private final OrderSide orderSide;
         private final boolean isBuy;
         private final int ordersCount;
 
-        CountBasedOrderGenerator(Order.OrderSide orderSide, int tradingTimeMins) {
+        CountBasedOrderGenerator(OrderSide orderSide, int tradingTimeMins) {
             this.tradingDuration = tradingTimeMins * 60 * 1000;
             this.orderSide = orderSide;
-            this.isBuy = orderSide.equals(Order.OrderSide.BUY);
+            this.isBuy = orderSide.equals(OrderSide.BUY);
             this.ordersCount = isBuy ? buyOrdersCount : sellOrdersCount;
         }
 
@@ -201,7 +204,6 @@ public class GeneratorImpl implements Generator {
 
     public static void main(String[] args) {
 
-        final Engine engine = null;
         final int preopeningTime = 0;
         final int tradingTime = 0;
         final int buyOrdersCount = 10000000;

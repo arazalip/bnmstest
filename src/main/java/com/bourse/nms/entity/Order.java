@@ -13,69 +13,68 @@ public class Order implements Comparable {
         SELL
     }
 
-//    private final OrderType type;     not needed in this phase
-//    private final OrderValidity validity;     not needed in this phase
-//    private final int orderQuantity;      not needed in this phase, we'll only use totalQuantity
-    private final int stockId;
     private final int totalQuantity;
-    private final int subscriberId; //todo: have to be long for more serious implementations
-    private final OrderSide orderSide;
-    private final long price;
-    private final int subscriberPriority;   //order account type code
-    private final long creationTime;
+    private final byte subscriberId;
+    private final long orderCode;
 
-    public Order(int stockId, int totalQuantity, int subscriberId, OrderSide orderSide, long price, int subscriberPriority) {
-        this.stockId = stockId;
+    public Order(int totalQuantity, byte subscriberId, long price, int subscriberPriority) {
         this.totalQuantity = totalQuantity;
         this.subscriberId = subscriberId;
-        this.orderSide = orderSide;
-        this.price = price;
-        this.subscriberPriority = subscriberPriority;
-        this.creationTime = System.nanoTime();
-    }
-
-    public int getStockId() {
-        return stockId;
+        long timeFactor = Long.MAX_VALUE - System.nanoTime();
+        this.orderCode = buildOrderCode(price, subscriberPriority, timeFactor);
     }
 
     public int getTotalQuantity() {
         return totalQuantity;
     }
 
-    public int getSubscriberId() {
+    public byte getSubscriberId() {
         return subscriberId;
     }
 
-    public OrderSide getOrderSide() {
-        return orderSide;
-    }
-
     public long getPrice() {
-        return price;
+        return ((orderCode & 0xFFFFF00000000000l) >> 44);
     }
 
-    public int getSubscriberPriority() {
-        return subscriberPriority;
+    public byte getSubscriberPriority() {
+        return (byte) ((orderCode & 0x00000F0000000000l) >> 40);
     }
 
-    public long getCreationTime() {
-        return creationTime;
+    public long getOrderCode() {
+        return this.orderCode;
     }
 
     @Override
     public int compareTo(Object o) {
         final Order order = (Order) o;
-        final long priceDif = price - order.getPrice();
-        if (priceDif == 0) {
-            final int priorityDif = subscriberPriority - order.getSubscriberPriority();
-            if (priorityDif == 0) {
-                return (int) (order.getCreationTime() - creationTime);
-            } else {
-                return priorityDif;
-            }
-        } if(order.getOrderSide().equals(OrderSide.BUY)) return -1 * (int) priceDif;
-        else return (int) priceDif;
+        return (int) (this.orderCode - order.getOrderCode());
     }
 
+    private long buildOrderCode(long price, int priority, long time) {
+        return (long) ((price & 0x7FFFF) * Math.pow(2, 44)) |
+                (long) ((priority & 0x0F) * Math.pow(2, 40)) |
+                (time & 0xFFFFFFFFFFl);
+    }
 
+    public static void main(String[] args) {
+        final long time = Long.MAX_VALUE - System.nanoTime();
+        final byte priority = (byte) 5;
+        final int price = 100000;
+        System.out.println(time & 0xFFFFFFFFFFl);
+        System.out.println(priority & 0x0F);
+        System.out.println(price & 0x7FFFF);
+
+        //goddammit! shifting bits isn't available for 8Byte types...
+        final long orderCode = (long) ((price & 0x7FFFF) * Math.pow(2, 44)) | (long) ((priority & 0x0F) * Math.pow(2, 40)) | (time & 0xFFFFFFFFFFl);
+        System.out.println(orderCode);
+
+        final long fetchedPrice = (orderCode & 0xFFFFF00000000000l) >> 44;
+        System.out.println(fetchedPrice);
+
+        final byte fetchedPriority = (byte) ((orderCode & 0x00000F0000000000l) >> 40);
+        System.out.println(fetchedPriority);
+
+        final long fetchedTime = (orderCode & 0xFFFFFFFFFFl);
+        System.out.print(fetchedTime);
+    }
 }

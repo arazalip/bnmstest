@@ -2,6 +2,7 @@ package com.bourse.nms.engine;
 
 import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Order;
+import com.bourse.nms.entity.Order.OrderSide;
 
 /**
  * Created by IntelliJ IDEA.
@@ -12,10 +13,15 @@ import com.bourse.nms.entity.Order;
 public interface Engine {
 
     public void startPreOpening();
-    public void putOrder(Order order) throws NMSException;
+
+    public void putOrder(Order order, OrderSide orderSide, int stockId) throws NMSException;
+
     public void startTrading();
+
     public void pause();
+
     public void stop();
+
     public void resume();
 
 }

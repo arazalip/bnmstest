@@ -2,10 +2,13 @@ package com.bourse.nms.engine;
 
 import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Order;
+import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.log.ActivityLogger;
 import org.apache.log4j.Logger;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,7 +35,7 @@ public class EngineImpl implements Engine {
         this.acLog = acLog;
     }
 
-    public enum State{
+    public enum State {
         NOT_STARTED, PRE_OPENING, TRADING, PAUSED, FINISHED
     }
 
@@ -42,29 +45,29 @@ public class EngineImpl implements Engine {
     }
 
     @Override
-    public void putOrder(Order order) throws NMSException {
-        if(!state.equals(State.PRE_OPENING) && !state.equals(State.TRADING)){
+    public void putOrder(Order order, OrderSide orderSide, int stockId) throws NMSException {
+        if (!state.equals(State.PRE_OPENING) && !state.equals(State.TRADING)) {
             throw new NMSException(NMSException.ErrorCode.INVALID_STATE_FOR_PUT_ORDER, "put order is not functional when engine is in state: " + state.name());
         }
-        if(order.getOrderSide().equals(Order.OrderSide.BUY)){
-            if(!buyQueues.containsKey(order.getStockId())){
-                buyQueues.put(order.getStockId(),new PriorityBlockingQueue<Order>(3000000));
+        if (orderSide.equals(OrderSide.BUY)) {
+            if (!buyQueues.containsKey(stockId)) {
+                buyQueues.put(stockId, new PriorityBlockingQueue<Order>(3000000));
             }
-            buyQueues.get(order.getStockId()).add(order);
-        }else{
-            if(!sellQueues.containsKey(order.getStockId())){
-                sellQueues.put(order.getStockId(), new PriorityBlockingQueue<Order>(3000000));
+            buyQueues.get(stockId).add(order);
+        } else {
+            if (!sellQueues.containsKey(stockId)) {
+                sellQueues.put(stockId, new PriorityBlockingQueue<Order>(3000000));
             }
-            sellQueues.get(order.getStockId()).add(order);
+            sellQueues.get(stockId).add(order);
         }
 
         orderPutCounter.incrementAndGet();
 
-        if(!tradingThreads.containsKey(order.getStockId())){
-            tradingThreads.put(order.getStockId(), new TradingThread(order.getStockId()));
+        if (!tradingThreads.containsKey(stockId)) {
+            tradingThreads.put(stockId, new TradingThread(stockId));
         }
-        final TradingThread stockTradingThread = tradingThreads.get(order.getStockId());
-        synchronized (stockTradingThread){//thread can check itself to see if new orders have come, if this synchronize affects efficiency
+        final TradingThread stockTradingThread = tradingThreads.get(stockId);
+        synchronized (stockTradingThread) {//thread can check itself to see if new orders have come, if this synchronize affects efficiency
             stockTradingThread.notify();
         }
     }
@@ -72,7 +75,7 @@ public class EngineImpl implements Engine {
     @Override
     public void startTrading() {
         state = State.TRADING;
-        for(TradingThread tt : tradingThreads.values()){
+        for (TradingThread tt : tradingThreads.values()) {
             tt.start();
         }
 
@@ -89,11 +92,11 @@ public class EngineImpl implements Engine {
     public void stop() {
         int countBuy = 0;
         int countSell = 0;
-        for(PriorityBlockingQueue<Order> buyQueue : buyQueues.values()){
-            countBuy+=buyQueue.size();
+        for (PriorityBlockingQueue<Order> buyQueue : buyQueues.values()) {
+            countBuy += buyQueue.size();
         }
-        for(PriorityBlockingQueue<Order> sellQueue : sellQueues.values()){
-            countBuy+=sellQueue.size();
+        for (PriorityBlockingQueue<Order> sellQueue : sellQueues.values()) {
+            countBuy += sellQueue.size();
         }
         log.info("putOrderCount: " + orderPutCounter + ", tradeCount: " + tradeCounter + ", queues count buy: " + countBuy + ", sell: " + countSell);
         state = State.FINISHED;
@@ -102,24 +105,25 @@ public class EngineImpl implements Engine {
 
     @Override
     public void resume() {
-        if(prevState != null)
+        if (prevState != null)
             state = prevState;
     }
 
-    public class TradingThread extends Thread{
+    public class TradingThread extends Thread {
         private final int stockId;
-        public TradingThread(int stockId){
+
+        public TradingThread(int stockId) {
             this.stockId = stockId;
         }
 
-        public void run(){
-            while (state.equals(EngineImpl.State.TRADING)){
+        public void run() {
+            while (state.equals(EngineImpl.State.TRADING)) {
                 final PriorityBlockingQueue<Order> buyQueue = buyQueues.get(stockId);
                 final PriorityBlockingQueue<Order> sellQueue = sellQueues.get(stockId);
-                if(buyQueue.isEmpty() || sellQueue.isEmpty()){
+                if (buyQueue.isEmpty() || sellQueue.isEmpty()) {
                     try {
                         log.debug("sell or buy queue is empty. sellQueue: " + sellQueue.size() + ", buyQueue: " + buyQueue.size());
-                        synchronized (this){//same as notify
+                        synchronized (this) {//same as notify
                             this.wait();
                             continue;
                         }
@@ -129,31 +133,27 @@ public class EngineImpl implements Engine {
                 }
                 final Order buyOrder = buyQueue.poll();
                 final Order sellOrder = sellQueue.poll();
-                if(buyOrder.getPrice() < sellOrder.getPrice()){
+                if (buyOrder.getPrice() < sellOrder.getPrice()) {
                     //log.warn("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
                     acLog.log("trade could not be done with queue heads");
                     try {
-                        synchronized (this){//same as notify
+                        synchronized (this) {//same as notify
                             this.wait();
                         }
                     } catch (InterruptedException e) {
                         log.warn("InterruptedException on trading thread wait while no more trades could be made", e);
                     }
-                }else{
+                } else {
                     //it would be better to remove final from BuyOrder's totalQuantity or  make it atomic,
                     // so it shouldn't be removed and replaced in the queue
-                    if(buyOrder.getTotalQuantity() > sellOrder.getTotalQuantity()){
-                        buyQueue.add(new Order(buyOrder.getStockId(),
-                                (buyOrder.getTotalQuantity() - sellOrder.getTotalQuantity()),
+                    if (buyOrder.getTotalQuantity() > sellOrder.getTotalQuantity()) {
+                        buyQueue.add(new Order((buyOrder.getTotalQuantity() - sellOrder.getTotalQuantity()),
                                 buyOrder.getSubscriberId(),
-                                Order.OrderSide.BUY,
                                 buyOrder.getPrice(),
                                 buyOrder.getSubscriberPriority()));
-                    }else if(buyOrder.getTotalQuantity() < sellOrder.getTotalQuantity()){
-                        sellQueue.add(new Order(sellOrder.getStockId(),
-                                (sellOrder.getTotalQuantity() - buyOrder.getTotalQuantity()),
+                    } else if (buyOrder.getTotalQuantity() < sellOrder.getTotalQuantity()) {
+                        sellQueue.add(new Order((sellOrder.getTotalQuantity() - buyOrder.getTotalQuantity()),
                                 sellOrder.getSubscriberId(),
-                                Order.OrderSide.SELL,
                                 sellOrder.getPrice(),
                                 sellOrder.getSubscriberPriority()));
 
@@ -198,11 +198,11 @@ public class EngineImpl implements Engine {
 
     public static void putOrders(final Engine e, final int totalCount) throws NMSException {
         final Random r = new Random();
-        Thread t1 = new Thread(){
-            public void run(){
-                for(int i = 0; i < totalCount / 2; i++){
+        Thread t1 = new Thread() {
+            public void run() {
+                for (int i = 0; i < totalCount / 2; i++) {
                     try {
-                        e.putOrder(new Order(r.nextInt(10)+1,r.nextInt(100),1, Order.OrderSide.BUY, r.nextInt(1000), 1));
+                        e.putOrder(new Order(r.nextInt(100), (byte) 1, r.nextInt(1000), 1), OrderSide.BUY, r.nextInt(10) + 1);
                     } catch (NMSException e1) {
                         log.warn("NMSException: " + e);
                     }
@@ -211,11 +211,11 @@ public class EngineImpl implements Engine {
         };
         t1.start();
 
-        Thread t2 = new Thread(){
-            public void run(){
-                for(int i = 0; i < totalCount / 2; i++){
+        Thread t2 = new Thread() {
+            public void run() {
+                for (int i = 0; i < totalCount / 2; i++) {
                     try {
-                        e.putOrder(new Order(r.nextInt(10)+1,r.nextInt(100),1, Order.OrderSide.SELL, r.nextInt(1000), 1));
+                        e.putOrder(new Order(r.nextInt(100), (byte) 1, r.nextInt(1000), 1), OrderSide.SELL, r.nextInt(10) + 1);
                     } catch (NMSException e1) {
                         log.warn("NMSException: " + e);
                     }

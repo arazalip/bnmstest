@@ -30,11 +30,6 @@
         <button onclick ="document.getElementById('subscribersFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
-<%--
-        <button onclick ="fileUpload('<c:url value="index.do"/>','subscribersFile');return false;">
-            <fmt:message key="send_file"/>
-        </button>
---%>
         <span id="subscribersFileName" style="float: left;margin-right: 10px;"></span>
         <input id="subscribersFile" name="subscribersFile" type="file" class="fileUpload"
                onchange="fileUpload('<c:url value="index.do"/>','subscribersFile');
@@ -47,11 +42,6 @@
         <button onclick ="document.getElementById('symbolsFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
-<%--
-        <button onclick ="fileUpload('<c:url value="index.do"/>','symbolsFile');return false;">
-            <fmt:message key="send_file"/>
-        </button>
---%>
         <span id="symbolsFileName" style="float: left;margin-right: 10px;"></span>
         <input id="symbolsFile" name="symbolsFile" type="file" class="fileUpload"
                onchange="fileUpload('<c:url value="index.do"/>','symbolsFile');

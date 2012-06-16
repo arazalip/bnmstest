@@ -135,7 +135,6 @@ public class GeneratorImpl implements Generator {
             }
         }).start();
 
-
         try {
             Thread.sleep(preOpeningTime * 60 * 1000);
         } catch (InterruptedException e) {
@@ -154,12 +153,13 @@ public class GeneratorImpl implements Generator {
                 log.warn("Exception on putToQueue", e);
             }
             final long latency = defaultLatency - (System.currentTimeMillis() - startTime);
-            if (latency > 0)
+            if (latency > 0){
                 try {
                     Thread.sleep(latency);
                 } catch (InterruptedException e) {
                     log.warn("Couldn't wait properly", e);
                 }
+            }
         }
     }
 

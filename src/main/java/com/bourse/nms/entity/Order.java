@@ -37,7 +37,7 @@ public class Order implements Comparable {
     }
 
     public byte getSubscriberPriority() {
-        return (byte) ((orderCode & 0x00000F0000000000l) >> 40);
+        return (byte) ((orderCode & 0x00000F00000000000l) >> 40);
     }
 
     public long getOrderCode() {

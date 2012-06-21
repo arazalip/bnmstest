@@ -4,6 +4,7 @@ import com.bourse.nms.entity.Order;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * Date: 6/8/12
  * Time: 7:34 PM
  */
-public class ObjectSizeCalc {
+public class ClassSizeCalc {
 
     private static int NR_BITS = Integer.valueOf(System.getProperty("sun.arch.data.model"));
     private static final int BYTE = 8;
@@ -64,5 +65,6 @@ public class ObjectSizeCalc {
 
     public static void main(String[] args) {
         System.out.println(sizeOf(Order.class));
+        System.out.println(sizeOf(BigInteger.class));
     }
 }

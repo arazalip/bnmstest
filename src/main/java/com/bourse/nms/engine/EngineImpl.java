@@ -78,8 +78,6 @@ public class EngineImpl implements Engine {
         for (TradingThread tt : tradingThreads.values()) {
             tt.start();
         }
-
-
     }
 
     @Override
@@ -167,16 +165,6 @@ public class EngineImpl implements Engine {
 
     }
 
-/*
-    public Map<Integer, TreeSet<Order>> getBuyQueues() {
-        return buyQueues;
-    }
-
-    public Map<Integer, TreeSet<Order>> getSellQueues() {
-        return sellQueues;
-    }
-*/
-
     public static void main(String[] args) throws NMSException, InterruptedException {
 
         Engine e = new EngineImpl(new ActivityLogger());
@@ -185,13 +173,13 @@ public class EngineImpl implements Engine {
         log.debug("pre opening started. --" + "system millis: " + System.currentTimeMillis());
         final int totalOrderCount = 30000000;
         putOrders(e, totalOrderCount);
+        Thread.sleep(300 * 1000);
         log.debug(totalOrderCount + "orders put. --" + "system millis: " + System.currentTimeMillis());
         e.startTrading();
-        Thread.sleep(300 * 1000);
         log.debug("trading started. --" + "system millis: " + System.currentTimeMillis());
         putOrders(e, totalOrderCount);
-        log.debug(totalOrderCount + "orders put. --" + "system millis: " + System.currentTimeMillis());
         Thread.sleep(300 * 1000);
+        log.debug(totalOrderCount + "orders put. --" + "system millis: " + System.currentTimeMillis());
         e.stop();
         log.debug("stopped. --" + "system millis: " + System.currentTimeMillis());
     }

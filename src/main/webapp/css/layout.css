@@ -28,7 +28,7 @@ body{
 }
 .inputDiv label{
     float: right;
-    width: 200px;
+    width: 215px;
 }
 
 .inputDiv input, .inputDiv button{
@@ -62,7 +62,6 @@ body{
     float: left;
     width: 835px;
     height: 390px;
-    background-color: #DDD;
 }
 
 .integer{

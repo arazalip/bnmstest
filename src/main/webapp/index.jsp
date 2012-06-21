@@ -15,7 +15,9 @@
     <script type="text/javascript" src="<c:url value="js/jquery-1.7.2.min.js"/>"></script>
     <script type='text/javascript' src='<c:url value="js/ajaxfileupload.js"/>'></script>
     <script type='text/javascript' src='<c:url value="js/modal.popup.js"/>'></script>
+    <script type='text/javascript' src='<c:url value="js/flotr2.min.js"/>'></script>
     <link rel="stylesheet" type="text/css" href="<c:url value="css/ajaxfileupload.css"/>"/>
+    <link rel="stylesheet" type="text/css" href="<c:url value="css/flotr.css"/>"/>
 </head>
 <body>
 <div id="header">
@@ -26,10 +28,10 @@
 <div id="control">
     <div class="inputDiv">
         <label for="subscribersFile"><fmt:message key="subscriber_file"/>:</label>
-        <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="subhelp">
         <button onclick ="document.getElementById('subscribersFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
+        <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="subhelp">
         <span id="subscribersFileName" style="float: left;margin-right: 10px;"></span>
         <input id="subscribersFile" name="subscribersFile" type="file" class="fileUpload"
                onchange="fileUpload('<c:url value="index.do"/>','subscribersFile');
@@ -38,10 +40,10 @@
     </div>
     <div class="inputDiv">
         <label for="symbolsFile"><fmt:message key="symbols_file"/>:</label>
-        <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="symhelp">
         <button onclick ="document.getElementById('symbolsFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
+        <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="symhelp">
         <span id="symbolsFileName" style="float: left;margin-right: 10px;"></span>
         <input id="symbolsFile" name="symbolsFile" type="file" class="fileUpload"
                onchange="fileUpload('<c:url value="index.do"/>','symbolsFile');
@@ -179,5 +181,80 @@
     </script>
 </div>
 <div id="stats"></div>
+<script type="text/javascript">
+    function drawGraph(container) {
+
+        var
+                d1 = [],
+                d2 = [],
+                d3 = [],
+                options,
+                graph,
+                start,
+                i;
+
+        for (i = 0; i < 4000; i += 1) {
+            d1.push([i, Math.random()]);
+            d2.push([i, Math.random()]);
+            d3.push([i, Math.random()]);
+        }
+
+        options = {
+            xaxis: {min: 0, max: 10, minorTickFreq: 4},
+            grid: {minorVerticalLines: true},
+            title : 'Time',
+            spreadsheet : {show : true,tickFormatter : function (e) { return e+''; }}
+        };
+
+        // Draw graph with default options, overwriting with passed options
+        function drawGraph (opts) {
+
+            // Clone the options, so the 'options' variable always keeps intact.
+            var o = Flotr._.extend(Flotr._.clone(options), opts || {});
+
+            // Return a new graph.
+            return Flotr.draw(
+                    container,
+                    [
+                        { data : d1, label : 'Serie 1' },
+                        { data : d2, label : 'Serie 2' },
+                        { data : d3, label : 'Serie 3' }
+                    ],
+                    o
+            );
+        }
+
+        graph = drawGraph();
+
+        function initializeDrag (e) {
+            start = graph.getEventPosition(e);
+            Flotr.EventAdapter.observe(document, 'mousemove', move);
+            Flotr.EventAdapter.observe(document, 'mouseup', stopDrag);
+        }
+
+        function move (e) {
+            var
+                    end     = graph.getEventPosition(e),
+                    xaxis   = graph.axes.x,
+                    offset  = start.x - end.x;
+
+            graph = drawGraph({
+                xaxis : {
+                    min : xaxis.min + offset,
+                    max : xaxis.max + offset
+                }
+            });
+            // @todo: refector initEvents in order not to remove other observed events
+            Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
+        }
+
+        function stopDrag () {
+            Flotr.EventAdapter.stopObserving(document, 'mousemove', move);
+        }
+
+        Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
+    }
+    drawGraph(document.getElementById("stats"));
+</script>
 </body>
 </html>

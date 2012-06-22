@@ -1,6 +1,8 @@
 package com.bourse.nms.log;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -10,7 +12,7 @@ import org.apache.log4j.Logger;
  */
 public class ActivityLogger {
 
-    private static final Logger logger = Logger.getLogger(ActivityLogger.class);
+    private static final Logger logger = LoggerFactory.getLogger(ActivityLogger.class);
 
     public void log(String msg) {
         logger.info(msg);

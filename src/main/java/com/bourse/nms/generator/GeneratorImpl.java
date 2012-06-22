@@ -7,7 +7,9 @@ import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import com.bourse.nms.log.ActivityLogger;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -20,7 +22,7 @@ import java.util.*;
  */
 public class GeneratorImpl implements Generator {
 
-    private static Logger log = Logger.getLogger(GeneratorImpl.class);
+    private static Logger log = LoggerFactory.getLogger(GeneratorImpl.class);
     private static ActivityLogger activityLogger = new ActivityLogger();
 
     @Autowired
@@ -83,8 +85,8 @@ public class GeneratorImpl implements Generator {
                               Set<Symbol> symbols, Set<Subscriber> customers) {
         this.preOpeningTime = preOpeningTime;
         this.tradingTime = tradingTime;
-        this.buyOrdersCount = buyOrdersCount;
-        this.sellOrdersCount = sellOrdersCount;
+        this.buyOrdersCount = buyOrdersCount - preOpeningBuyOrdersCount;
+        this.sellOrdersCount = sellOrdersCount - preOpeningSellOrdersCount;
         this.preOpeningBuyOrdersCount = preOpeningBuyOrdersCount;
         this.preOpeningSellOrdersCount = preOpeningSellOrdersCount;
         this.matchPercent = matchPercent;
@@ -118,6 +120,13 @@ public class GeneratorImpl implements Generator {
         final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.SELL, tradingTime));
         buyOrderGenerator.start();
         sellOrderGenerator.start();
+        try {
+            Thread.sleep(tradingTime * 60 * 1000);
+        } catch (InterruptedException e) {
+            log.warn("exception on trading wait", e);
+        }
+        log.info("process finished");
+        engine.stop();
     }
 
     private void preopeningGeneration() {
@@ -154,7 +163,7 @@ public class GeneratorImpl implements Generator {
                 final int stockId = stockIds.get(random.nextInt(stocksCount));
                 final Order order = randomOrder(orderside, stockId);
                 putToQueue(order, orderside, stockId);
-                activityLogger.log("O " + orderside + "," + stockId + "," + order.toString());
+
             } catch (NMSException e) {
                 log.warn("Exception on putToQueue", e);
             }

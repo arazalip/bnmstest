@@ -4,7 +4,9 @@ import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Order;
 import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.log.ActivityLogger;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -20,7 +22,7 @@ public class EngineImpl implements Engine {
 
 
     private final ActivityLogger acLog;
-    private final static Logger log = Logger.getLogger(EngineImpl.class);
+    private final static Logger log = LoggerFactory.getLogger(EngineImpl.class);
     private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = new HashMap<>();
     private final Map<Integer, PriorityBlockingQueue<Order>> sellQueues = new HashMap<>();
     private final Map<Integer, TradingThread> tradingThreads = new HashMap<>();
@@ -65,7 +67,7 @@ public class EngineImpl implements Engine {
         }
 
         orderPutCounter.incrementAndGet();
-
+        acLog.log("O " + orderSide + "," + stockId + "," + order.toString());
         if (!tradingThreads.containsKey(stockId)) {
             tradingThreads.put(stockId, new TradingThread(stockId));
         }
@@ -97,11 +99,15 @@ public class EngineImpl implements Engine {
             countBuy += buyQueue.size();
         }
         for (PriorityBlockingQueue<Order> sellQueue : sellQueues.values()) {
-            countBuy += sellQueue.size();
+            countSell += sellQueue.size();
         }
         log.info("putOrderCount: " + orderPutCounter + ", tradeCount: " + tradeCounter + ", queues count buy: " + countBuy + ", sell: " + countSell);
         state = State.FINISHED;
-        System.exit(0);
+        buyQueues.clear();
+        sellQueues.clear();
+        tradingThreads.clear();
+        orderPutCounter.set(0);
+        tradeCounter.set(0);
     }
 
     @Override
@@ -157,6 +163,7 @@ public class EngineImpl implements Engine {
                             continue;
                         }
                     } catch (InterruptedException e) {
+                        //log.warn("InterruptedException on trading thread wait while queues are empty", e);
                         log.warn("InterruptedException on trading thread wait while queues are empty", e);
                     }
                 }
@@ -164,7 +171,7 @@ public class EngineImpl implements Engine {
                 final Order sellOrder = sellQueue.poll();
                 if (buyOrder.getPrice() < sellOrder.getPrice()) {
                     //log.warn("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
-//                    acLog.log("trade could not be done with queue heads");
+                    acLog.log("trade could not be done with queue heads");
                     try {
                         synchronized (this) {//same as notify
                             this.wait();

@@ -3,7 +3,8 @@ package com.bourse.nms;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import java.io.File;
@@ -19,7 +20,7 @@ import java.net.URL;
  */
 public class Launcher {
 
-    private static final Logger log = Logger.getLogger(Launcher.class);
+    private static final Logger log = LoggerFactory.getLogger(Launcher.class);
 
     public static void main(final String[] args) throws ServletException, LifecycleException, URISyntaxException, IOException {
         final Tomcat tomcat = new Tomcat();

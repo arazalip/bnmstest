@@ -60,13 +60,15 @@ public class MainServlet extends HttpServlet {
         engine = (Engine) context.getBean("engine");
     }
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (req.getParameter("info") != null) {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
+    {
+        if(req.getParameter("info") != null){
+            resp.setContentType("application/json");
             resp.getWriter().write("{" +
-                    "putOrderCount:" + engine.getPutOrderCount() + "," +
-                    "tradeCount:" + engine.getTradeCount() + "," +
-                    "buyQueueSize:" + engine.getBuyQueueSize() + "," +
-                    "sellQueueSize:" + engine.getSellQueueSize() +
+                    "\"putOrderCount\":" + engine.getPutOrderCount() + "," +
+                    "\"tradeCount\":" + engine.getTradeCount() + ","+
+                    "\"buyQueueSize\":" + engine.getBuyQueueSize() + "," +
+                    "\"sellQueueSize\":" + engine.getSellQueueSize() +
                     "}");
             return;
         }

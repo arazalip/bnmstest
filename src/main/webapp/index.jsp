@@ -87,7 +87,7 @@
         </div>
     </form>
     <hr/>
-    <button class="command" onclick="sendCommand('start');"><fmt:message key="start_process"/></button><br/>
+    <button class="command" onclick="sendCommand('start');startGraph();"><fmt:message key="start_process"/></button><br/>
     <button class="command" onclick="sendCommand('pause');"><fmt:message key="pause_process"/></button><br/>
     <button class="command" onclick="sendCommand('restart');"><fmt:message key="restart_process"/></button><br/>
     <button class="command" onclick="sendCommand('stop');"><fmt:message key="stop_process"/></button><br/>
@@ -108,7 +108,7 @@
                 dataType: "text",
                 url: "<c:url value="command.do?action="/>" + command
             }).done(function(data) {
-                alert(data);
+                //alert(data);
             });
         }
 
@@ -182,46 +182,22 @@
 </div>
 <div id="stats"></div>
 <script type="text/javascript">
-    function drawGraph(container, d1, d2, d3, d4) {
+    var d1=[0], d2=[0], d3=[0],d4=[0];
+    var options = {
+        xaxis: {min: 0, max: 10, minorTickFreq: 4},
+        grid: {minorVerticalLines: true},
+        title : 'Time',
+        spreadsheet : {show : true,tickFormatter : function (e) { return e+''; }}
+    };
 
-        var options,
-            graph,
+    function createGraph(container) {
+
+        var graph,
             start,
             i;
 
-        for (i = 0; i < 4000; i += 1) {
-            d1.push([i, Math.random()]);
-            d2.push([i, Math.random()]);
-            d3.push([i, Math.random()]);
-        }
 
-        options = {
-            xaxis: {min: 0, max: 10, minorTickFreq: 4},
-            grid: {minorVerticalLines: true},
-            title : 'Time',
-            spreadsheet : {show : true,tickFormatter : function (e) { return e+''; }}
-        };
-
-        // Draw graph with default options, overwriting with passed options
-        function drawGraph (opts) {
-
-            // Clone the options, so the 'options' variable always keeps intact.
-            var o = Flotr._.extend(Flotr._.clone(options), opts || {});
-
-            // Return a new graph.
-            return Flotr.draw(
-                    container,
-                    [
-                        { data : d1, label : 'Serie 1' },
-                        { data : d2, label : 'Serie 2' },
-                        { data : d3, label : 'Serie 3' },
-                        { data : d4, label : 'Serie 4' }
-                    ],
-                    o
-            );
-        }
-
-        graph = drawGraph();
+        graph = drawGraph(container, options);
 
         function initializeDrag (e) {
             start = graph.getEventPosition(e);
@@ -251,17 +227,55 @@
 
         Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
     }
+    // Draw graph with default options, overwriting with passed options
+    function drawGraph (container, opts) {
 
-    setInterval(function(){
-        $.ajax({
-            type: "GET",
-            dataType: "text",
-            url: "<c:url value="index.do?info=1"/>"
+        // Clone the options, so the 'options' variable always keeps intact.
+        var o = Flotr._.extend(Flotr._.clone(options), opts || {});
+
+        // Return a new graph.
+        return Flotr.draw(
+                container,
+                [
+                    { data : d1, label : 'Serie 1' },
+                    { data : d2, label : 'Serie 2' },
+                    { data : d3, label : 'Serie 3' },
+                    { data : d4, label : 'Serie 4' }
+                ],
+                o
+        );
+    }
+    createGraph(document.getElementById("stats"));
+
+    function startGraph(){
+        //setInterval("updateGraph()", 1000);
+    }
+    function updateGraph(){
+/*
+        d1.push(5);
+        d2.push(5);
+        d3.push(5);
+        d4.push(5);
+        drawGraph(document.getElementById("stats"), options);
+*/
+
+        /*
+   $.ajax({
+       type: "GET",
+       dataType: "text",
+       url: "<c:url value="index.do?info=1"/>"
         }).done(function(data) {
-            alert(data);
-        });
-    }, 1000);
-    drawGraph(document.getElementById("stats"));
+                    var info = $.parseJSON(data);
+                    //alert(info.toString());
+                    d1.push(info.putOrderCount);
+                    d2.push(info.tradeCount);
+                    d3.push(info.buyQueueSize);
+                    d4.push(info.sellQueueSize);
+                    drawGraph(document.getElementById("stats"), d1,d2,d3,d4 );
+                });
+*/
+    }
+
 </script>
 </body>
 </html>

@@ -24,4 +24,12 @@ public interface Engine {
 
     public void resume();
 
+    public int getPutOrderCount();
+
+    public int getTradeCount();
+
+    public int getBuyQueueSize();
+
+    public int getSellQueueSize();
+
 }

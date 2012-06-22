@@ -167,6 +167,7 @@ public class GeneratorImpl implements Generator {
     public void pauseProcess() {
         //todo: this won't work...
         this.working = false;
+        engine.pause();
     }
 
     @Override
@@ -179,6 +180,7 @@ public class GeneratorImpl implements Generator {
     @Override
     public void stopProcess() {
         this.working = false;
+        engine.stop();
     }
 
     class CountBasedOrderGenerator implements Runnable {

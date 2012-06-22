@@ -1,6 +1,7 @@
 package com.bourse.nms.web;
 
 import com.bourse.nms.common.NMSException;
+import com.bourse.nms.engine.Engine;
 import com.bourse.nms.entity.Settings;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
@@ -45,19 +46,30 @@ public class MainServlet extends HttpServlet{
     public static final String MATCH_PERCENT = "matchPercent";
     public static final String SYMBOLS_FILE = "symbolsFile";
     public static final String SUBSCRIBERS_FILE = "subscribersFile";
-    public static final String FILE_COLUMN_SEPARATOR = ",";
+    public static final String FILE_COLUMN_SEPARATOR = ";";
 
     private Generator generator;
     private Settings settings;
+    private Engine engine;
     public void init(){
         log.info("Main Servlet Init...");
         final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         generator = (Generator) context.getBean("generator");
         settings = (Settings) context.getBean("settings");
+        engine = (Engine) context.getBean("engine");
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
+        if(req.getParameter("info") != null){
+            resp.getWriter().write("{" +
+                    "putOrderCount:" + engine.getPutOrderCount() + "," +
+                    "tradeCount:" + engine.getTradeCount() + ","+
+                    "buyQueueSize:" + engine.getBuyQueueSize() + "," +
+                    "sellQueueSize:" + engine.getSellQueueSize() +
+                    "}");
+            return;
+        }
         RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/index.jsp");
         dispatcher.forward(req, resp);
     }
@@ -81,8 +93,8 @@ public class MainServlet extends HttpServlet{
                             settings.getTradingTime(),
                             settings.getBuyOrdersCount(),
                             settings.getSellOrdersCount(),
-                            settings.getPreOpeningOrdersCount()/2,
-                            settings.getPreOpeningOrdersCount()/2,
+                            (int)((float)((settings.getPreOpeningOrdersCount()/2))/100 * settings.getBuyOrdersCount()),
+                            (int)((float)((settings.getPreOpeningOrdersCount()/2))/100 * settings.getSellOrdersCount()),
                             settings.getMatchPercent(),
                             settings.getSymbols(),
                             settings.getCustomers());

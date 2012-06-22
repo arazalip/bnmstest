@@ -182,16 +182,12 @@
 </div>
 <div id="stats"></div>
 <script type="text/javascript">
-    function drawGraph(container) {
+    function drawGraph(container, d1, d2, d3, d4) {
 
-        var
-                d1 = [],
-                d2 = [],
-                d3 = [],
-                options,
-                graph,
-                start,
-                i;
+        var options,
+            graph,
+            start,
+            i;
 
         for (i = 0; i < 4000; i += 1) {
             d1.push([i, Math.random()]);
@@ -218,7 +214,8 @@
                     [
                         { data : d1, label : 'Serie 1' },
                         { data : d2, label : 'Serie 2' },
-                        { data : d3, label : 'Serie 3' }
+                        { data : d3, label : 'Serie 3' },
+                        { data : d4, label : 'Serie 4' }
                     ],
                     o
             );
@@ -254,6 +251,16 @@
 
         Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
     }
+
+    setInterval(function(){
+        $.ajax({
+            type: "GET",
+            dataType: "text",
+            url: "<c:url value="index.do?info=1"/>"
+        }).done(function(data) {
+            alert(data);
+        });
+    }, 1000);
     drawGraph(document.getElementById("stats"));
 </script>
 </body>

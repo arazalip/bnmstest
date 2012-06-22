@@ -38,7 +38,7 @@ body{
 #control{
     margin-right: 50px;
     float: right;
-    width: 390px;
+    width: 440px;
 }
 
 .help{
@@ -60,7 +60,7 @@ body{
 #stats{
     margin-left: 50px;
     float: left;
-    width: 835px;
+    width: 810px;
     height: 390px;
 }
 

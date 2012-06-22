@@ -6,9 +6,7 @@ import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.log.ActivityLogger;
 import org.apache.log4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -51,7 +49,12 @@ public class EngineImpl implements Engine {
         }
         if (orderSide.equals(OrderSide.BUY)) {
             if (!buyQueues.containsKey(stockId)) {
-                buyQueues.put(stockId, new PriorityBlockingQueue<Order>(3000000));
+                buyQueues.put(stockId, new PriorityBlockingQueue<Order>(3000000, new Comparator<Order>() {
+                    @Override
+                    public int compare(Order o1, Order o2) {
+                        return o2.compareTo(o1);
+                    }
+                }));
             }
             buyQueues.get(stockId).add(order);
         } else {
@@ -105,6 +108,34 @@ public class EngineImpl implements Engine {
     public void resume() {
         if (prevState != null)
             state = prevState;
+    }
+
+    @Override
+    public int getPutOrderCount() {
+        return orderPutCounter.intValue();
+    }
+
+    @Override
+    public int getTradeCount() {
+        return tradeCounter.intValue();
+    }
+
+    @Override
+    public int getBuyQueueSize() {
+        int result = 0;
+        for(Queue q : buyQueues.values()){
+            result += q.size();
+        }
+        return result;
+    }
+
+    @Override
+    public int getSellQueueSize() {
+        int result = 0;
+        for(Queue q : sellQueues.values()){
+            result += q.size();
+        }
+        return result;
     }
 
     public class TradingThread extends Thread {
@@ -173,7 +204,7 @@ public class EngineImpl implements Engine {
         log.debug("pre opening started. --" + "system millis: " + System.currentTimeMillis());
         final int totalOrderCount = 30000000;
         putOrders(e, totalOrderCount);
-        Thread.sleep(300 * 1000);
+        Thread.sleep(30 * 1000);
         log.debug(totalOrderCount + "orders put. --" + "system millis: " + System.currentTimeMillis());
         e.startTrading();
         log.debug("trading started. --" + "system millis: " + System.currentTimeMillis());

@@ -7,8 +7,7 @@ import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import com.bourse.nms.log.ActivityLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,7 +21,7 @@ import java.util.*;
  */
 public class GeneratorImpl implements Generator {
 
-    private static Logger log = LoggerFactory.getLogger(GeneratorImpl.class);
+    private static Logger log = Logger.getLogger(GeneratorImpl.class);
     private static ActivityLogger activityLogger = new ActivityLogger();
 
     @Autowired

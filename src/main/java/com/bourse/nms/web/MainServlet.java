@@ -8,8 +8,7 @@ import com.bourse.nms.entity.Symbol;
 import com.bourse.nms.generator.Generator;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -38,7 +37,7 @@ import java.util.Set;
  */
 public class MainServlet extends HttpServlet {
 
-    private final Logger log = LoggerFactory.getLogger(MainServlet.class);
+    private final Logger log = Logger.getLogger(MainServlet.class);
 
     public static final String PRE_OPENING_RUN_TIME = "preOpeningRunTime";
     public static final String TRADING_RUN_TIME = "tradingRunTime";

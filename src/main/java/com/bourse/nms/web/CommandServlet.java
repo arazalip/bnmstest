@@ -2,8 +2,7 @@ package com.bourse.nms.web;
 
 import com.bourse.nms.common.NMSException;
 import com.bourse.nms.generator.Generator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -22,7 +21,7 @@ import java.io.IOException;
  */
 public class CommandServlet extends HttpServlet {
 
-    private final Logger log = LoggerFactory.getLogger(CommandServlet.class);
+    private final Logger log = Logger.getLogger(CommandServlet.class);
 
     private Generator generator;
 

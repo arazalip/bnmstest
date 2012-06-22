@@ -1,7 +1,6 @@
 package com.bourse.nms.log;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 
 /**
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ActivityLogger {
 
-    private static final Logger logger = LoggerFactory.getLogger(ActivityLogger.class);
+    private static final Logger logger = Logger.getLogger(ActivityLogger.class);
 
     public void log(String msg) {
         logger.info(msg);

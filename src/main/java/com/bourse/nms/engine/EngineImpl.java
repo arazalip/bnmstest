@@ -4,8 +4,7 @@ import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Order;
 import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.log.ActivityLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 
 import java.util.*;
@@ -22,7 +21,7 @@ public class EngineImpl implements Engine {
 
 
     private final ActivityLogger acLog;
-    private final static Logger log = LoggerFactory.getLogger(EngineImpl.class);
+    private final static Logger log = Logger.getLogger(EngineImpl.class);
     private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = new HashMap<>();
     private final Map<Integer, PriorityBlockingQueue<Order>> sellQueues = new HashMap<>();
     private final Map<Integer, TradingThread> tradingThreads = new HashMap<>();

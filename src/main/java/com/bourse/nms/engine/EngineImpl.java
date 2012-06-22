@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class EngineImpl implements Engine {
 
-
     private final ActivityLogger acLog;
     private final static Logger log = Logger.getLogger(EngineImpl.class);
     private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = new HashMap<>();
@@ -170,7 +169,7 @@ public class EngineImpl implements Engine {
                 final Order sellOrder = sellQueue.poll();
                 if (buyOrder.getPrice() < sellOrder.getPrice()) {
                     //log.warn("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
-                    acLog.log("trade could not be done with queue heads");
+                    //acLog.log("trade could not be done with queue heads");
                     try {
                         synchronized (this) {//same as notify
                             this.wait();
@@ -204,6 +203,7 @@ public class EngineImpl implements Engine {
 
     public static void main(String[] args) throws NMSException, InterruptedException {
 
+/*
         Engine e = new EngineImpl(new ActivityLogger());
         log.debug("system millis: " + System.currentTimeMillis());
         e.startPreOpening();
@@ -248,5 +248,7 @@ public class EngineImpl implements Engine {
             }
         };
         t2.start();
+*/
+
     }
 }

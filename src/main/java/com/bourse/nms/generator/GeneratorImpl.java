@@ -22,10 +22,12 @@ import java.util.*;
 public class GeneratorImpl implements Generator {
 
     private static Logger log = Logger.getLogger(GeneratorImpl.class);
-    private static ActivityLogger activityLogger = new ActivityLogger();
 
     @Autowired
     private Engine engine;
+    @Autowired
+    private ActivityLogger activityLogger;
+
     private boolean working;
 
     private int preOpeningTime;   //in minutes
@@ -39,10 +41,6 @@ public class GeneratorImpl implements Generator {
     private Map<Integer, Symbol> symbols;
     private ArrayList<Integer> stockIds;
     private int stocksCount;
-
-    public GeneratorImpl() {
-
-    }
 
     public Order randomOrder(OrderSide orderSide, int stockId) {
         final Random random = new Random();
@@ -102,7 +100,7 @@ public class GeneratorImpl implements Generator {
         for (Subscriber s : customers) {
             this.customers.add(s);
         }
-
+        activityLogger.init(buyOrdersCount + sellOrdersCount);
         working = true;
     }
 

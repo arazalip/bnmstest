@@ -16,11 +16,14 @@
     </bean>
 
     <context:annotation-config />
-    <bean id="generator" class="com.bourse.nms.generator.GeneratorImpl"/>
     <bean id="activityLogger" class="com.bourse.nms.log.ActivityLogger"/>
-    <bean id="engine" class="com.bourse.nms.engine.EngineImpl">
+    <bean id="generator" class="com.bourse.nms.generator.GeneratorImpl">
         <constructor-arg index="0" ref="activityLogger"/>
     </bean>
+
+    <bean id="engine" class="com.bourse.nms.engine.EngineImpl">
+        <constructor-arg index="0" ref="activityLogger"/>
+            </bean>
 
     <bean id="settings" class="com.bourse.nms.entity.Settings"/>
 </beans>

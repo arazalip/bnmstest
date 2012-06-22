@@ -34,7 +34,7 @@ import java.util.Set;
  * Date: 5/31/12
  * Time: 2:05 PM
  */
-public class MainServlet extends HttpServlet{
+public class MainServlet extends HttpServlet {
 
     private final Logger log = Logger.getLogger(MainServlet.class);
 
@@ -51,20 +51,20 @@ public class MainServlet extends HttpServlet{
     private Generator generator;
     private Settings settings;
     private Engine engine;
-    public void init(){
-        log.info("Main Servlet Init...");
+
+    public void init() {
+        log.debug("Main Servlet Init...");
         final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         generator = (Generator) context.getBean("generator");
         settings = (Settings) context.getBean("settings");
         engine = (Engine) context.getBean("engine");
     }
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-    {
-        if(req.getParameter("info") != null){
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (req.getParameter("info") != null) {
             resp.getWriter().write("{" +
                     "putOrderCount:" + engine.getPutOrderCount() + "," +
-                    "tradeCount:" + engine.getTradeCount() + ","+
+                    "tradeCount:" + engine.getTradeCount() + "," +
                     "buyQueueSize:" + engine.getBuyQueueSize() + "," +
                     "sellQueueSize:" + engine.getSellQueueSize() +
                     "}");
@@ -75,17 +75,15 @@ public class MainServlet extends HttpServlet{
     }
 
     @SuppressWarnings("unchecked")
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-    {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-            if(req.getContentType().contains("multipart/form-data"))
-            {
+            if (req.getContentType().contains("multipart/form-data")) {
                 final List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
                 for (FileItem item : items) {
                     putFileData(item);
                 }
-            }else{
-                for(String fieldName : req.getParameterMap().keySet()){
+            } else {
+                for (String fieldName : req.getParameterMap().keySet()) {
                     putFormField(fieldName, req.getParameter(fieldName));
                 }
                 try {
@@ -93,8 +91,8 @@ public class MainServlet extends HttpServlet{
                             settings.getTradingTime(),
                             settings.getBuyOrdersCount(),
                             settings.getSellOrdersCount(),
-                            (int)((float)((settings.getPreOpeningOrdersCount()/2))/100 * settings.getBuyOrdersCount()),
-                            (int)((float)((settings.getPreOpeningOrdersCount()/2))/100 * settings.getSellOrdersCount()),
+                            (int) ((float) ((settings.getPreOpeningOrdersCount() / 2)) / 100 * settings.getBuyOrdersCount()),
+                            (int) ((float) ((settings.getPreOpeningOrdersCount() / 2)) / 100 * settings.getSellOrdersCount()),
                             settings.getMatchPercent(),
                             settings.getSymbols(),
                             settings.getCustomers());
@@ -118,14 +116,14 @@ public class MainServlet extends HttpServlet{
         final String fieldName = item.getFieldName();
         final String fileName = FilenameUtils.getName(item.getName());
         final BufferedReader fileReader = new BufferedReader(new InputStreamReader(item.getInputStream()));
-        switch (fieldName){
+        switch (fieldName) {
             case SYMBOLS_FILE:
                 final Set<Symbol> symbols = new HashSet<>();
-                while (fileReader.ready()){
+                while (fileReader.ready()) {
                     final String line = fileReader.readLine();
-                    if(StringUtils.isNotEmpty(line)){
+                    if (StringUtils.isNotEmpty(line)) {
                         final String[] lineArr = line.split(FILE_COLUMN_SEPARATOR);
-                        if(lineArr.length < 12){
+                        if (lineArr.length < 12) {
                             log.warn("invalid data line in symbols file: " + line);
                             continue;
                         }
@@ -145,11 +143,11 @@ public class MainServlet extends HttpServlet{
                 break;
             case SUBSCRIBERS_FILE:
                 final Set<Subscriber> subscribers = new HashSet<>();
-                while (fileReader.ready()){
+                while (fileReader.ready()) {
                     final String line = fileReader.readLine();
-                    if(StringUtils.isNotEmpty(line)){
+                    if (StringUtils.isNotEmpty(line)) {
                         final String[] lineArr = line.split(FILE_COLUMN_SEPARATOR);
-                        if(lineArr.length < 3){
+                        if (lineArr.length < 3) {
                             log.warn("invalid data line in subscribers file: " + line);
                             continue;
                         }

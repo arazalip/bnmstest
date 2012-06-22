@@ -23,17 +23,17 @@ public class CommandServlet extends HttpServlet {
     private final Logger log = Logger.getLogger(CommandServlet.class);
 
     private Generator generator;
-    public void init(){
-        log.info("Command Servlet Init...");
+
+    public void init() {
+        log.debug("Command Servlet Init...");
         final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         generator = (Generator) context.getBean("generator");
     }
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-    {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         final String action = req.getParameter("action");
 
-        switch (action){
+        switch (action) {
             case "start":
                 try {
                     generator.startProcess();
@@ -79,8 +79,7 @@ public class CommandServlet extends HttpServlet {
         }
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-    {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
     }
 }

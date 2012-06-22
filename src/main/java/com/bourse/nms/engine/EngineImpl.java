@@ -123,7 +123,7 @@ public class EngineImpl implements Engine {
     @Override
     public int getBuyQueueSize() {
         int result = 0;
-        for(Queue q : buyQueues.values()){
+        for (Queue q : buyQueues.values()) {
             result += q.size();
         }
         return result;
@@ -132,7 +132,7 @@ public class EngineImpl implements Engine {
     @Override
     public int getSellQueueSize() {
         int result = 0;
-        for(Queue q : sellQueues.values()){
+        for (Queue q : sellQueues.values()) {
             result += q.size();
         }
         return result;
@@ -164,7 +164,7 @@ public class EngineImpl implements Engine {
                 final Order sellOrder = sellQueue.poll();
                 if (buyOrder.getPrice() < sellOrder.getPrice()) {
                     //log.warn("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
-                    acLog.log("trade could not be done with queue heads");
+//                    acLog.log("trade could not be done with queue heads");
                     try {
                         synchronized (this) {//same as notify
                             this.wait();
@@ -187,7 +187,7 @@ public class EngineImpl implements Engine {
                                 sellOrder.getSubscriberPriority()));
 
                     }
-                    acLog.log("trade done with buy: " + buyOrder + ", sell: " + sellOrder);
+                    acLog.log("T:" + stockId + " b:" + buyOrder + " s:" + sellOrder);
                     tradeCounter.incrementAndGet();
                     //log.debug("sell queue size: " + sellQueue.size() + ", buy queue size: " + buyQueue.size() + ", putOrderCount: " + orderPutCounter.get() + ", tradeCount: " + tradeCounter.get());
                 }

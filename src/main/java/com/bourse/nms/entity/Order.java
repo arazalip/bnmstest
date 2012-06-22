@@ -56,6 +56,11 @@ public class Order implements Comparable {
         return (price & 0x7FFFFl) << 44 | ((priority & 0x0Fl) << 40) | ((time & 0xFFFFFFFFFF000l) >> 12);
     }
 
+    @Override
+    public String toString() {
+        return totalQuantity + "," + subscriberId + "," + orderCode;
+    }
+
     public static void main(String[] args) {
         final Order order1 = new Order(10, (byte) 10, 10000, 10);
         final Order order2 = new Order(10, (byte) 10, 10000, 10);

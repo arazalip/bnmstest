@@ -27,7 +27,7 @@ public class Launcher {
         addConnector(8082, false, tomcat, null);
         //addConnector(443, true, tomcat, certificateStores);
         final URL location = new File("target/bnmstest-1.0").toURI().toURL();
-        log.info("Using webapp at " + location.toExternalForm());
+        log.debug("Using webapp at " + location.toExternalForm());
         tomcat.addWebapp("/", location.toURI().getPath());
         tomcat.start();
         tomcat.getServer().await();
@@ -40,9 +40,9 @@ public class Launcher {
         connector.setPort(port);
         connector.setProperty("maxPostSize", "0");  // unlimited
         connector.setProperty("xpoweredBy", "true");
-        if(https) {
+        if (https) {
             connector.setSecure(true);
-            connector.setProperty("SSLEnabled","true");
+            connector.setProperty("SSLEnabled", "true");
             connector.setProperty("keyPass", "123456");
             connector.setProperty("keystoreFile", certificateStores[0].getCanonicalPath());
             connector.setProperty("keystorePass", "123456");

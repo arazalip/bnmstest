@@ -6,6 +6,7 @@ import com.bourse.nms.entity.Order;
 import com.bourse.nms.entity.Order.OrderSide;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
+import com.bourse.nms.log.ActivityLogger;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,7 +19,10 @@ import java.util.*;
  * Time: 12:48 PM
  */
 public class GeneratorImpl implements Generator {
+
     private static Logger log = Logger.getLogger(GeneratorImpl.class);
+    private static ActivityLogger activityLogger = new ActivityLogger();
+
     @Autowired
     private Engine engine;
     private boolean working;
@@ -103,7 +107,7 @@ public class GeneratorImpl implements Generator {
 
     @Override
     public void startProcess() {
-        log.info("Starting pre-opening phase");
+        log.debug("Starting pre-opening phase");
         engine.startPreOpening();
         preopeningGeneration();
         log.info("finished pre-opening generation");
@@ -148,12 +152,14 @@ public class GeneratorImpl implements Generator {
             final long startTime = System.currentTimeMillis();
             try {
                 final int stockId = stockIds.get(random.nextInt(stocksCount));
-                putToQueue(randomOrder(orderside, stockId), orderside, stockId);
+                final Order order = randomOrder(orderside, stockId);
+                putToQueue(order, orderside, stockId);
+                activityLogger.log("O " + orderside + "," + stockId + "," + order.toString());
             } catch (NMSException e) {
                 log.warn("Exception on putToQueue", e);
             }
             final long latency = defaultLatency - (System.currentTimeMillis() - startTime);
-            if (latency > 0){
+            if (latency > 0) {
                 try {
                     Thread.sleep(latency);
                 } catch (InterruptedException e) {

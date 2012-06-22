@@ -1,5 +1,7 @@
 package com.bourse.nms.log;
 
+import org.apache.log4j.Logger;
+
 /**
  * Created by IntelliJ IDEA.
  * User: araz
@@ -8,8 +10,10 @@ package com.bourse.nms.log;
  */
 public class ActivityLogger {
 
-    public void log(String msg){
-        //System.err.println("##ACLOG: " + msg);
+    private static final Logger logger = Logger.getLogger(ActivityLogger.class);
+
+    public void log(String msg) {
+        logger.info(msg);
     }
 
 }

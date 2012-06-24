@@ -94,8 +94,8 @@ public class MainServlet extends HttpServlet {
                             settings.getTradingTime(),
                             settings.getBuyOrdersCount(),
                             settings.getSellOrdersCount(),
-                            (int) ((float) ((settings.getPreOpeningOrdersCount() / 2)) / 100 * settings.getBuyOrdersCount()),
-                            (int) ((float) ((settings.getPreOpeningOrdersCount() / 2)) / 100 * settings.getSellOrdersCount()),
+                            (int) ((float) ((settings.getPreOpeningOrdersPercent())) / 100 * settings.getBuyOrdersCount()),
+                            (int) ((float) ((settings.getPreOpeningOrdersPercent())) / 100 * settings.getSellOrdersCount()),
                             settings.getMatchPercent(),
                             settings.getSymbols(),
                             settings.getCustomers());
@@ -182,7 +182,7 @@ public class MainServlet extends HttpServlet {
                 settings.setSellOrdersCount(Integer.parseInt(fieldValue));
                 break;
             case PRE_OPENING_ORDERS:
-                settings.setPreOpeningOrdersCount(Integer.parseInt(fieldValue));
+                settings.setPreOpeningOrdersPercent(Integer.parseInt(fieldValue));
                 break;
             case MATCH_PERCENT:
                 settings.setMatchPercent(Integer.parseInt(fieldValue));

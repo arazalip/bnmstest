@@ -18,7 +18,6 @@
     <context:annotation-config />
     <bean id="activityLogger" class="com.bourse.nms.log.ActivityLogger"/>
     <bean id="generator" class="com.bourse.nms.generator.GeneratorImpl">
-        <constructor-arg index="0" ref="activityLogger"/>
     </bean>
 
     <bean id="engine" class="com.bourse.nms.engine.EngineImpl">

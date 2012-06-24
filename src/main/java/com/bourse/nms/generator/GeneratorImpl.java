@@ -58,7 +58,7 @@ public class GeneratorImpl implements Generator {
         final Subscriber subscriber = randomSubscriber();
 
         //decide price
-        final int price = PriceGenerator.randomPrice(symbol.getMinimumPriceForBuy(), symbol.getMaximumPriceForBuy(),
+        final int price = PriceGenerator.randomPrice(stockId, symbol.getMinimumPriceForBuy(), symbol.getMaximumPriceForBuy(),
                 symbol.getMinimumPriceForSell(), symbol.getMaximumPriceForSell(), isBuy, this.matchPercent);
 
         return new Order(totalQuantity, (byte) subscriber.getId(), price, subscriber.getPriority());

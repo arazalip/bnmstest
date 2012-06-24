@@ -46,10 +46,8 @@ public class Order implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        final Order order = (Order) o;
-        //todo: find a faster way... note that casting from long to int can generate pure nonsense
-        final long dif = (this.orderCode - order.getOrderCode());
-        return dif == 0 ? 0 : (int) (dif / Math.abs(dif));
+        //final Order order = (Order) o;
+        return Long.compare(this.getOrderCode(), ((Order) o).getOrderCode());
     }
 
     public static long buildOrderCode(long price, int priority, long time) {
@@ -58,7 +56,8 @@ public class Order implements Comparable {
 
     @Override
     public String toString() {
-        return totalQuantity + "," + subscriberId + "," + orderCode;
+        return totalQuantity + "," + subscriberId + "," + orderCode + "," + getPrice();
+
     }
 
     public static void main(String[] args) {

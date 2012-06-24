@@ -182,98 +182,85 @@
 </div>
 <div id="stats"></div>
 <script type="text/javascript">
-    var d1=[0], d2=[0], d3=[0],d4=[0];
-    var options = {
-        xaxis: {min: 0, max: 10, minorTickFreq: 4},
-        grid: {minorVerticalLines: true},
-        title : 'Time',
-        spreadsheet : {show : true,tickFormatter : function (e) { return e+''; }}
+    var d1 = [[]],
+        d2 = [[]],
+        d3 = [[]],
+        d4 = [[]],
+        options, graph, start, i;
+    options = {
+        xaxis: {
+            min: 0,
+            max: 20
+        },
+        title: "Mouse Drag"
     };
+    var container = document.getElementById("stats");
 
-    function createGraph(container) {
-
-        var graph,
-            start,
-            i;
-
-
-        graph = drawGraph(container, options);
-
-        function initializeDrag (e) {
-            start = graph.getEventPosition(e);
-            Flotr.EventAdapter.observe(document, 'mousemove', move);
-            Flotr.EventAdapter.observe(document, 'mouseup', stopDrag);
-        }
-
-        function move (e) {
-            var
-                    end     = graph.getEventPosition(e),
-                    xaxis   = graph.axes.x,
-                    offset  = start.x - end.x;
-
-            graph = drawGraph({
-                xaxis : {
-                    min : xaxis.min + offset,
-                    max : xaxis.max + offset
-                }
-            });
-            // @todo: refector initEvents in order not to remove other observed events
-            Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
-        }
-
-        function stopDrag () {
-            Flotr.EventAdapter.stopObserving(document, 'mousemove', move);
-        }
-
-        Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
-    }
-    // Draw graph with default options, overwriting with passed options
-    function drawGraph (container, opts) {
-
-        // Clone the options, so the 'options' variable always keeps intact.
+    function drawGraph(opts) {
         var o = Flotr._.extend(Flotr._.clone(options), opts || {});
-
-        // Return a new graph.
-        return Flotr.draw(
-                container,
-                [
-                    { data : d1, label : 'Serie 1' },
-                    { data : d2, label : 'Serie 2' },
-                    { data : d3, label : 'Serie 3' },
-                    { data : d4, label : 'Serie 4' }
-                ],
-                o
-        );
+        return Flotr.draw(container,
+            [{ label: "PutOrderCount", data: d1},
+            {label: "TradeCount", data: d2},
+            {label: "BuyQueueSize", data: d3},
+            {label: "SellQueueSize", data: d4}], o);
     }
-    createGraph(document.getElementById("stats"));
 
+    graph = drawGraph();
+    var drag = false;
+    function initializeDrag(e) {
+        drag = true;
+        start = graph.getEventPosition(e);
+        Flotr.EventAdapter.observe(document, "mousemove", move);
+        Flotr.EventAdapter.observe(document, "mouseup", stopDrag);
+    }
+
+
+    function move(e) {
+        var end = graph.getEventPosition(e),
+                xaxis = graph.axes.x,
+                offset = start.x - end.x;
+        graph = drawGraph({
+            xaxis: {
+                min: xaxis.min + offset,
+                max: xaxis.max + offset
+            }
+        });
+        Flotr.EventAdapter.observe(graph.overlay, "mousedown", initializeDrag);
+    }
+
+
+    function stopDrag() {
+        drag = false;
+        Flotr.EventAdapter.stopObserving(document, "mousemove", move);
+    }
+
+    Flotr.EventAdapter.observe(graph.overlay, "mousedown", initializeDrag);
+
+    var index = 0;
     function startGraph(){
-        //setInterval("updateGraph()", 1000);
-    }
-    function updateGraph(){
-/*
-        d1.push(5);
-        d2.push(5);
-        d3.push(5);
-        d4.push(5);
-        drawGraph(document.getElementById("stats"), options);
-*/
+        setInterval(function () {
+            $.ajax({
+                type: "GET",
+                dataType: "text",
+                url: "<c:url value="index.do?info=1"/>"
+            }).done(function(data) {
+                var info = $.parseJSON(data);
+                //alert(info.toString());
+                d1.push([++index, info.putOrderCount]);
+                d2.push([index, info.tradeCount]);
+                d3.push([index, info.buyQueueSize]);
+                d4.push([index, info.sellQueueSize]);
+            });
+            var optional = {};
+            if(!drag){
+                optional = {xaxis: {
+                    min: Math.abs(20-(index+1)),
+                    max: index+1
+                }}
+            }
+            drawGraph(optional);
 
-        /*
-   $.ajax({
-       type: "GET",
-       dataType: "text",
-       url: "<c:url value="index.do?info=1"/>"
-        }).done(function(data) {
-                    var info = $.parseJSON(data);
-                    //alert(info.toString());
-                    d1.push(info.putOrderCount);
-                    d2.push(info.tradeCount);
-                    d3.push(info.buyQueueSize);
-                    d4.push(info.sellQueueSize);
-                    drawGraph(document.getElementById("stats"), d1,d2,d3,d4 );
-                });
-*/
+        }, 1000);
     }
 
 </script>

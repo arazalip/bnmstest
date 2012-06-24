@@ -14,7 +14,7 @@ public class Settings {
     int tradingTime;
     int buyOrdersCount;
     int sellOrdersCount;
-    int preOpeningOrdersCount;
+    int preOpeningOrdersPercent;
     int matchPercent;
     Set<Symbol> symbols;
     Set<Subscriber> customers;
@@ -52,12 +52,12 @@ public class Settings {
         this.sellOrdersCount = sellOrdersCount;
     }
 
-    public int getPreOpeningOrdersCount() {
-        return preOpeningOrdersCount;
+    public int getPreOpeningOrdersPercent() {
+        return preOpeningOrdersPercent;
     }
 
-    public void setPreOpeningOrdersCount(int preOpeningOrdersCount) {
-        this.preOpeningOrdersCount = preOpeningOrdersCount;
+    public void setPreOpeningOrdersPercent(int preOpeningOrdersPercent) {
+        this.preOpeningOrdersPercent = preOpeningOrdersPercent;
     }
 
     public int getMatchPercent() {

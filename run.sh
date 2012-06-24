@@ -1,8 +1,8 @@
 VER=1.0
 MAIN_CLASS=com.bourse.nms.Launcher
 
-MEM_MIN=128m
-MEM_MAX=128m
+MEM_MIN=1024m
+MEM_MAX=6144m
 
 JAVA_OPTS="-server -Xms$MEM_MIN -Xmx$MEM_MAX -XX:+UseParallelGC -XX:+AggressiveOpts -XX:+UseFastAccessorMethods"
 JAVA_OPTS="$JAVA_OPTS -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -XX:MaxPermSize=128M"

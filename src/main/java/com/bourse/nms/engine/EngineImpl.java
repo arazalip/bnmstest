@@ -70,8 +70,12 @@ public class EngineImpl implements Engine {
             tradingThreads.put(stockId, new TradingThread(stockId));
         }
         final TradingThread stockTradingThread = tradingThreads.get(stockId);
+        try{
         synchronized (stockTradingThread) {//thread can check itself to see if new orders have come, if this synchronize affects efficiency
             stockTradingThread.notify();
+        }
+        }catch (NullPointerException e){
+            e.printStackTrace();
         }
     }
 
@@ -171,6 +175,8 @@ public class EngineImpl implements Engine {
                     //log.warn("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
                     //acLog.log("trade could not be done with queue heads");
                     try {
+                        buyQueue.add(buyOrder);
+                        sellQueue.add(sellOrder);
                         synchronized (this) {//same as notify
                             this.wait();
                         }

@@ -21,14 +21,16 @@
 </head>
 <body>
 <div id="header">
-<h1><fmt:message key="application.title"/></h1>
-<img src="<c:url value="/img/blogo.jpg"/>" alt="logo">
+    <h1><fmt:message key="application.title"/></h1>
+    <img src="<c:url value="/img/blogo.jpg"/>" alt="logo">
 </div>
-<img id="loading" style="display:none;position: fixed;left: 50%;top: 20%" src="<c:url value="img/loading.gif"/>" alt="loading">
+<img id="loading" style="display:none;position: fixed;left: 50%;top: 20%" src="<c:url value="img/loading.gif"/>"
+     alt="loading">
+
 <div id="control">
     <div class="inputDiv">
         <label for="subscribersFile"><fmt:message key="subscriber_file"/>:</label>
-        <button onclick ="document.getElementById('subscribersFile').click();return false;">
+        <button onclick="document.getElementById('subscribersFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
         <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="subhelp">
@@ -40,7 +42,7 @@
     </div>
     <div class="inputDiv">
         <label for="symbolsFile"><fmt:message key="symbols_file"/>:</label>
-        <button onclick ="document.getElementById('symbolsFile').click();return false;">
+        <button onclick="document.getElementById('symbolsFile').click();return false;">
             <fmt:message key="choose_file"/>
         </button>
         <img class="help" src="<c:url value="/img/help.gif"/>" alt="help" id="symhelp">
@@ -80,48 +82,92 @@
                 <input id="matchPercent" name="matchPercent" type="text" class="integer"/>
             </div>
 
-            <div  class="inputDiv">
+            <div class="inputDiv">
                 <label>&nbsp;</label>
                 <button><fmt:message key="submit"/></button>
             </div>
         </div>
     </form>
     <hr/>
-    <button class="command" onclick="sendCommand('start');startGraph();"><fmt:message key="start_process"/></button><br/>
-    <button class="command" onclick="sendCommand('pause');"><fmt:message key="pause_process"/></button><br/>
-    <button class="command" onclick="sendCommand('restart');"><fmt:message key="restart_process"/></button><br/>
-    <button class="command" onclick="sendCommand('stop');"><fmt:message key="stop_process"/></button><br/>
+    <button class="command" onclick="sendCommand('start');startGraph();"><fmt:message key="start_process"/></button>
+    <br/>
+    <button class="command" onclick="sendCommand('pause');"><fmt:message key="pause_process"/></button>
+    <br/>
+    <button class="command" onclick="sendCommand('restart');"><fmt:message key="restart_process"/></button>
+    <br/>
+    <button class="command" onclick="sendCommand('stop');"><fmt:message key="stop_process"/></button>
+    <br/>
     <script type="text/javascript">
 
-        $('#settingsForm').submit(function() {
+        $('#settingsForm').submit(function () {
             var values = {};
-            $.each($('#settingsForm :input').serializeArray(), function(i, field) {
-                values[field.name] = field.value;
+            $.each($('#settingsForm :input').serializeArray(), function (i, field) {
+                if (!$.isNumeric(field.value)) {
+                    alert("invalid value: " + field.value + " for field: " + field.name);
+                    return false;
+                }
+                values[field.name] = parseInt(field.value);
             });
-            $.post('<c:url value="index.do"/>', values, function(data){alert(data);}, "text");
+            if (values['preOpeningRunTime'] + values['tradingRunTime'] > 60) {
+                if (!confirm("Run time is greater than an hour!")) {
+                    return false;
+                }
+            }
+            else if ((values['totalBuyOrders'] / (values['preOpeningRunTime'] + values['tradingRunTime'])) * 60 > 100000) {
+                if (!confirm("Throughput will be more than 100,000 messages/second!")) {
+                    return false;
+                }
+            }
+            else if (values['preOpeningOrders'] > 50) {
+                if (!confirm("Pre-opening orders more than 50% of total!")) {
+                    return false;
+                }
+            }
+            else if (values['matchPercent'] < 30) {
+                if (!confirm("Match percent smaller than 30%!")) {
+                    return false;
+                }
+            }
+
+            $.post('<c:url value="index.do"/>', values, function (data) {
+                alert(data);
+            }, "text");
             return false;
         });
 
-        function sendCommand(command){
+        function sendCommand(command) {
             $.ajax({
-                type: "GET",
-                dataType: "text",
-                url: "<c:url value="command.do?action="/>" + command
-            }).done(function(data) {
+                type:"GET",
+                dataType:"text",
+                url:"<c:url value="index.do?state=true"/>"
+            }).done(function (data) {
+                var engineState = $.parseJSON(data).state;
+                switch (command){
+                    case 'start':
+                        if(engineState == 'INITIALIZING' || engineState == 'WAITING')
+                        alert("<fmt:message key="settings_not_complete"/>");
+                        return false;
+                }
                 //alert(data);
+                $.ajax({
+                    type:"GET",
+                    dataType:"text",
+                    url:"<c:url value="command.do?action="/>" + command
+                }).done(function (data) {
+                    //alert(data);
+                });
             });
         }
 
-        function fileUpload(url, fileElementId, successFunction)
-        {
+        function fileUpload(url, fileElementId, successFunction) {
             $("#loading")
-                .ajaxStart(function(){
-                    $(this).center();
-                    $(this).show();
-                })
-                .ajaxComplete(function(){
-                    $(this).hide();
-                });
+                    .ajaxStart(function () {
+                        $(this).center();
+                        $(this).show();
+                    })
+                    .ajaxComplete(function () {
+                        $(this).hide();
+                    });
 
             /*
              prepareing ajax file upload
@@ -133,26 +179,25 @@
              error: callback function when the ajax failed
              */
             $.ajaxFileUpload
-            (
-                {
-                    url:url,
-                    secureuri:false,
-                    fileElementId:fileElementId,
-                    dataType:"text",
-                    //dataType: 'json',
-                    success: function(data){
-                        alert(data.replace(/<pre>/g,'').replace(/<\/pre>/g,''));
-                    },
-                    error: function (data, status, e)
-                    {
-                        alert(e);
-                    }
-                }
-            );
+                    (
+                            {
+                                url:url,
+                                secureuri:false,
+                                fileElementId:fileElementId,
+                                dataType:"text",
+                                //dataType: 'json',
+                                success:function (data) {
+                                    alert(data.replace(/<pre>/g, '').replace(/<\/pre>/g, ''));
+                                },
+                                error:function (data, status, e) {
+                                    alert(e);
+                                }
+                            }
+                    );
             return false;
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             //Change these values to style your modal popup
             var align = 'center';									//Valid values; left, right, center
@@ -169,10 +214,10 @@
             var loadingImage = '<c:url value="/img/loading.gif"/>';		//Use relative path from this page
 
             //This method initialises the modal popup
-            $("#subhelp").click(function() {
+            $("#subhelp").click(function () {
                 modalPopup(align, top, width, padding, disableColor, disableOpacity, backgroundColor, borderColor, borderWeight, borderRadius, fadeOutTime, '<c:url value="subhelp.jsp"/>', loadingImage);
             });
-            $("#symhelp").click(function() {
+            $("#symhelp").click(function () {
                 modalPopup(align, top, width, padding, disableColor, disableOpacity, backgroundColor, borderColor, borderWeight, borderRadius, fadeOutTime, '<c:url value="symhelp.jsp"/>', loadingImage);
             });
 
@@ -182,27 +227,37 @@
 </div>
 <div id="stats"></div>
 <script type="text/javascript">
-    var d1 = [[]],
-        d2 = [[]],
-        d3 = [[]],
-        d4 = [[]],
-        options, graph, start, i;
+    var d1 = [
+                []
+            ],
+            d2 = [
+                []
+            ],
+            d3 = [
+                []
+            ],
+            d4 = [
+                []
+            ],
+            options, graph, start, i;
     options = {
-        xaxis: {
-            min: 0,
-            max: 20
+        xaxis:{
+            min:0,
+            max:20
         },
-        title: "Mouse Drag"
+        title:"Mouse Drag"
     };
     var container = document.getElementById("stats");
 
     function drawGraph(opts) {
         var o = Flotr._.extend(Flotr._.clone(options), opts || {});
         return Flotr.draw(container,
-            [{ label: "PutOrderCount", data: d1},
-            {label: "TradeCount", data: d2},
-            {label: "BuyQueueSize", data: d3},
-            {label: "SellQueueSize", data: d4}], o);
+                [
+                    { label:"PutOrderCount", data:d1},
+                    {label:"TradeCount", data:d2},
+                    {label:"BuyQueueSize", data:d3},
+                    {label:"SellQueueSize", data:d4}
+                ], o);
     }
 
     graph = drawGraph();
@@ -220,9 +275,9 @@
                 xaxis = graph.axes.x,
                 offset = start.x - end.x;
         graph = drawGraph({
-            xaxis: {
-                min: xaxis.min + offset,
-                max: xaxis.max + offset
+            xaxis:{
+                min:xaxis.min + offset,
+                max:xaxis.max + offset
             }
         });
         Flotr.EventAdapter.observe(graph.overlay, "mousedown", initializeDrag);
@@ -237,25 +292,25 @@
     Flotr.EventAdapter.observe(graph.overlay, "mousedown", initializeDrag);
 
     var index = 0;
-    function startGraph(){
+    function startGraph() {
         setInterval(function () {
             $.ajax({
-                type: "GET",
-                dataType: "text",
-                url: "<c:url value="index.do?info=1"/>"
-            }).done(function(data) {
-                var info = $.parseJSON(data);
-                //alert(info.toString());
-                d1.push([++index, info.putOrderCount]);
-                d2.push([index, info.tradeCount]);
-                d3.push([index, info.buyQueueSize]);
-                d4.push([index, info.sellQueueSize]);
-            });
+                type:"GET",
+                dataType:"text",
+                url:"<c:url value="index.do?info=1"/>"
+            }).done(function (data) {
+                        var info = $.parseJSON(data);
+                        //alert(info.toString());
+                        d1.push([++index, info.putOrderCount]);
+                        d2.push([index, info.tradeCount]);
+                        d3.push([index, info.buyQueueSize]);
+                        d4.push([index, info.sellQueueSize]);
+                    });
             var optional = {};
-            if(!drag){
-                optional = {xaxis: {
-                    min: Math.abs(20-(index+1)),
-                    max: index+1
+            if (!drag) {
+                optional = {xaxis:{
+                    min:Math.abs(20 - (index + 1)),
+                    max:index + 1
                 }}
             }
             drawGraph(optional);

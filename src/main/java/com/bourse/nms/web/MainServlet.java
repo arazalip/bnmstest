@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by IntelliJ IDEA.
@@ -59,6 +60,7 @@ public class MainServlet extends HttpServlet {
         generator = (Generator) context.getBean("generator");
         settings = (Settings) context.getBean("settings");
         engine = (Engine) context.getBean("engine");
+        settings.setStatus(Settings.EngineStatus.WAITING);
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
@@ -73,6 +75,14 @@ public class MainServlet extends HttpServlet {
                     "}");
             return;
         }
+        else if(req.getParameter("state") != null){
+            resp.setContentType("application/json");
+            resp.getWriter().write("{" +
+                    "\"state\":\"" + settings.getStatus().name() + "\""+
+                    "}");
+            return;
+        }
+
         RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/index.jsp");
         dispatcher.forward(req, resp);
     }
@@ -110,53 +120,69 @@ public class MainServlet extends HttpServlet {
             log.warn("file upload exception!", e);
             resp.getWriter().write(new AjaxResponse(new NMSException(NMSException.ErrorCode.FILE_UPLOAD_EXCEPTION, "file upload failed")).toString());
             throw new ServletException("Cannot parse multipart request.", e);
+        } catch (NMSException e) {
+            log.warn("settings exception!", e);
+            resp.getWriter().write(new AjaxResponse(e).toString());
+            throw new ServletException("InternalServerError.", e);
         }
 
     }
 
 
-    private void putFileData(FileItem item) throws IOException {
+    private void putFileData(FileItem item) throws IOException, NMSException {
         final String fieldName = item.getFieldName();
         final String fileName = FilenameUtils.getName(item.getName());
         final BufferedReader fileReader = new BufferedReader(new InputStreamReader(item.getInputStream()));
         switch (fieldName) {
             case SYMBOLS_FILE:
                 final Set<Symbol> symbols = new HashSet<>();
+                final AtomicInteger symbolsLineCounter = new AtomicInteger(0);
                 while (fileReader.ready()) {
                     final String line = fileReader.readLine();
                     if (StringUtils.isNotEmpty(line)) {
+                        symbolsLineCounter.incrementAndGet();
                         final String[] lineArr = line.split(FILE_COLUMN_SEPARATOR);
                         if (lineArr.length < 12) {
                             log.warn("invalid data line in symbols file: " + line);
-                            continue;
+                            throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "invalid data line in symbols file. line: " + symbolsLineCounter.get() + " - "+ line);
                         }
-                        symbols.add(new Symbol(Integer.parseInt(lineArr[0]), lineArr[1], lineArr[2],
-                                Integer.parseInt(lineArr[3]),
-                                Integer.parseInt(lineArr[4]),
-                                Integer.parseInt(lineArr[5]),
-                                Integer.parseInt(lineArr[6]),
-                                Integer.parseInt(lineArr[7]),
-                                Integer.parseInt(lineArr[8]),
-                                Integer.parseInt(lineArr[9]),
-                                Integer.parseInt(lineArr[10]),
-                                Integer.parseInt(lineArr[11])));
+                        try{
+                            symbols.add(new Symbol(Integer.parseInt(lineArr[0]), lineArr[1], lineArr[2],
+                                    Integer.parseInt(lineArr[3]),
+                                    Integer.parseInt(lineArr[4]),
+                                    Integer.parseInt(lineArr[5]),
+                                    Integer.parseInt(lineArr[6]),
+                                    Integer.parseInt(lineArr[7]),
+                                    Integer.parseInt(lineArr[8]),
+                                    Integer.parseInt(lineArr[9]),
+                                    Integer.parseInt(lineArr[10]),
+                                    Integer.parseInt(lineArr[11])));
+                        }catch (Throwable t){
+                            throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "invalid data line in symbols file. line: " + symbolsLineCounter.get() + " - "+ line);
+                        }
                     }
                 }
                 settings.setSymbols(symbols);
                 break;
             case SUBSCRIBERS_FILE:
                 final Set<Subscriber> subscribers = new HashSet<>();
+                final AtomicInteger subscribersLineCounter = new AtomicInteger(0);
                 while (fileReader.ready()) {
                     final String line = fileReader.readLine();
                     if (StringUtils.isNotEmpty(line)) {
+                        subscribersLineCounter.incrementAndGet();
                         final String[] lineArr = line.split(FILE_COLUMN_SEPARATOR);
                         if (lineArr.length < 3) {
                             log.warn("invalid data line in subscribers file: " + line);
-                            continue;
+                            throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "invalid data line in subscribers file. line: " + subscribersLineCounter.get() + " - "+ line);
                         }
-                        subscribers.add(new Subscriber(Integer.parseInt(lineArr[0]),
-                                Integer.parseInt(lineArr[1]),
-                                Integer.parseInt(lineArr[2])));
+                        try{
+                            subscribers.add(new Subscriber(Integer.parseInt(lineArr[0]),
+                                    Integer.parseInt(lineArr[1]),
+                                    Integer.parseInt(lineArr[2])));
+                        }catch (Throwable t){
+                            throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "invalid data line in subscribers file. line: " + subscribersLineCounter.get() + " - "+ line);
+                        }
                     }
                 }
                 settings.setCustomers(subscribers);
@@ -167,29 +193,34 @@ public class MainServlet extends HttpServlet {
         }
     }
 
-    private void putFormField(String fieldName, String fieldValue) {
-        switch (fieldName) {
-            case PRE_OPENING_RUN_TIME:
-                settings.setPreOpeningTime(Integer.parseInt(fieldValue));
-                break;
-            case TRADING_RUN_TIME:
-                settings.setTradingTime(Integer.parseInt(fieldValue));
-                break;
-            case TOTAL_BUY_ORDERS:
-                settings.setBuyOrdersCount(Integer.parseInt(fieldValue));
-                break;
-            case TOTAL_SELL_ORDERS:
-                settings.setSellOrdersCount(Integer.parseInt(fieldValue));
-                break;
-            case PRE_OPENING_ORDERS:
-                settings.setPreOpeningOrdersPercent(Integer.parseInt(fieldValue));
-                break;
-            case MATCH_PERCENT:
-                settings.setMatchPercent(Integer.parseInt(fieldValue));
-                break;
-            default:
-                log.warn("unknown parameter: " + fieldName + ": " + fieldValue);
-                break;
+    private void putFormField(String fieldName, String fieldValue) throws NMSException {
+        try{
+            switch (fieldName) {
+                case PRE_OPENING_RUN_TIME:
+                    settings.setPreOpeningTime(Integer.parseInt(fieldValue));
+                    break;
+                case TRADING_RUN_TIME:
+                    settings.setTradingTime(Integer.parseInt(fieldValue));
+                    break;
+                case TOTAL_BUY_ORDERS:
+                    settings.setBuyOrdersCount(Integer.parseInt(fieldValue));
+                    break;
+                case TOTAL_SELL_ORDERS:
+                    settings.setSellOrdersCount(Integer.parseInt(fieldValue));
+                    break;
+                case PRE_OPENING_ORDERS:
+                    settings.setPreOpeningOrdersPercent(Integer.parseInt(fieldValue));
+                    break;
+                case MATCH_PERCENT:
+                    settings.setMatchPercent(Integer.parseInt(fieldValue));
+                    break;
+                default:
+                    log.warn("unknown parameter: " + fieldName + ": " + fieldValue);
+                    break;
+            }
+        }catch (Throwable t){
+            log.warn("exception on settings", t);
+            throw new NMSException(NMSException.ErrorCode.SETTINGS_ERROR, "settings error: " + fieldName + ":" + fieldValue);
         }
     }
 }

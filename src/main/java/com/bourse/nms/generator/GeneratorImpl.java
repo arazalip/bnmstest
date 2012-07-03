@@ -4,6 +4,7 @@ import com.bourse.nms.common.NMSException;
 import com.bourse.nms.engine.Engine;
 import com.bourse.nms.entity.Order;
 import com.bourse.nms.entity.Order.OrderSide;
+import com.bourse.nms.entity.Settings;
 import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import com.bourse.nms.log.ActivityLogger;
@@ -27,6 +28,8 @@ public class GeneratorImpl implements Generator {
     private Engine engine;
     @Autowired
     private ActivityLogger activityLogger;
+    @Autowired
+    private Settings settings;
 
     private boolean working;
 
@@ -101,6 +104,7 @@ public class GeneratorImpl implements Generator {
             this.customers.add(s);
         }
         activityLogger.init(buyOrdersCount + sellOrdersCount);
+        settings.setStatus(Settings.EngineStatus.SETTINGS_COMPLETE);
         working = true;
     }
 
@@ -108,7 +112,7 @@ public class GeneratorImpl implements Generator {
     public void startProcess() {
         log.debug("Starting pre-opening phase");
         engine.startPreOpening();
-        preopeningGeneration();
+        preOpeningGeneration();
         log.info("finished pre-opening generation");
 
         log.info("starting trading session");
@@ -126,7 +130,7 @@ public class GeneratorImpl implements Generator {
         engine.stop();
     }
 
-    private void preopeningGeneration() {
+    private void preOpeningGeneration() {
         final long defaultWaitTime = (this.preOpeningTime * 60 * 1000 / (preOpeningBuyOrdersCount + preOpeningSellOrdersCount)) * 2;
 
         //pre-opening sell orders

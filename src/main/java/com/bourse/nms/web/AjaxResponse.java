@@ -22,6 +22,15 @@ public class AjaxResponse {
         this.errorCode = e.getErrorCode();
         this.message = e.getMessage();
     }
+
+    public int getErrorCode() {
+        return errorCode;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
     @Override
     public String toString() {
         return "{" +

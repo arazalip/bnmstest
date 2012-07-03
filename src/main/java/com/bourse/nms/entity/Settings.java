@@ -18,6 +18,17 @@ public class Settings {
     int matchPercent;
     Set<Symbol> symbols;
     Set<Subscriber> customers;
+    EngineStatus status = EngineStatus.INITIALIZING;
+
+    public enum EngineStatus{
+        INITIALIZING,
+        WAITING,
+        SETTINGS_COMPLETE,
+        PRE_OPENING,
+        TRADING,
+        PAUSED,
+        FINISHED
+    }
 
 
     public int getPreOpeningTime() {
@@ -84,4 +95,11 @@ public class Settings {
         this.customers = customers;
     }
 
+    public EngineStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EngineStatus status) {
+        this.status = status;
+    }
 }

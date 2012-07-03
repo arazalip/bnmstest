@@ -3,8 +3,10 @@ package com.bourse.nms.engine;
 import com.bourse.nms.common.NMSException;
 import com.bourse.nms.entity.Order;
 import com.bourse.nms.entity.Order.OrderSide;
+import com.bourse.nms.entity.Settings;
 import com.bourse.nms.log.ActivityLogger;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 import java.util.*;
@@ -26,30 +28,31 @@ public class EngineImpl implements Engine {
     private final Map<Integer, TradingThread> tradingThreads = new HashMap<>();
     private final AtomicInteger orderPutCounter = new AtomicInteger(0);
     private final AtomicInteger tradeCounter = new AtomicInteger(0);
-    private State state = State.NOT_STARTED;
-    private State prevState = null;
+    //private Settings.EngineStatus state = Settings.EngineStatus.WAITING;
+    @Autowired
+    private Settings settings;
+
+    private Settings.EngineStatus prevState = null;
 
     public EngineImpl(ActivityLogger acLog) {
         this.acLog = acLog;
     }
 
-    public enum State {
-        NOT_STARTED, PRE_OPENING, TRADING, PAUSED, FINISHED
-    }
-
     @Override
     public void startPreOpening() {
-        state = State.PRE_OPENING;
+        settings.setStatus(Settings.EngineStatus.PRE_OPENING);
     }
 
     @Override
     public void putOrder(Order order, OrderSide orderSide, int stockId) throws NMSException {
-        if (!state.equals(State.PRE_OPENING) && !state.equals(State.TRADING)) {
+        final Settings.EngineStatus state = settings.getStatus();
+        if (!state.equals(Settings.EngineStatus.PRE_OPENING) && !state.equals(Settings.EngineStatus.TRADING)) {
             throw new NMSException(NMSException.ErrorCode.INVALID_STATE_FOR_PUT_ORDER, "put order is not functional when engine is in state: " + state.name());
         }
         if (orderSide.equals(OrderSide.BUY)) {
             if (!buyQueues.containsKey(stockId)) {
-                buyQueues.put(stockId, new PriorityBlockingQueue<Order>(3000000, new Comparator<Order>() {
+                //todo: set initial capacity for an hour with 100,000 messages/second
+                buyQueues.put(stockId, new PriorityBlockingQueue<>(3000000, new Comparator<Order>() {
                     @Override
                     public int compare(Order o1, Order o2) {
                         return o2.compareTo(o1);
@@ -71,7 +74,8 @@ public class EngineImpl implements Engine {
         }
         final TradingThread stockTradingThread = tradingThreads.get(stockId);
         try{
-        synchronized (stockTradingThread) {//thread can check itself to see if new orders have come, if this synchronize affects efficiency
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (stockTradingThread) {//thread can check itself to see if new orders have come, if this synchronize affects efficiency
             stockTradingThread.notify();
         }
         }catch (NullPointerException e){
@@ -81,7 +85,7 @@ public class EngineImpl implements Engine {
 
     @Override
     public void startTrading() {
-        state = State.TRADING;
+        settings.setStatus(Settings.EngineStatus.TRADING);
         for (TradingThread tt : tradingThreads.values()) {
             tt.start();
         }
@@ -89,8 +93,8 @@ public class EngineImpl implements Engine {
 
     @Override
     public void pause() {
-        prevState = state;
-        state = State.PAUSED;
+        prevState = settings.getStatus();
+        settings.setStatus(Settings.EngineStatus.PAUSED);
     }
 
     @Override
@@ -104,7 +108,7 @@ public class EngineImpl implements Engine {
             countSell += sellQueue.size();
         }
         log.info("putOrderCount: " + orderPutCounter + ", tradeCount: " + tradeCounter + ", queues count buy: " + countBuy + ", sell: " + countSell);
-        state = State.FINISHED;
+        settings.setStatus(Settings.EngineStatus.FINISHED);
         buyQueues.clear();
         sellQueues.clear();
         tradingThreads.clear();
@@ -115,7 +119,7 @@ public class EngineImpl implements Engine {
     @Override
     public void resume() {
         if (prevState != null)
-            state = prevState;
+            settings.setStatus(prevState);
     }
 
     @Override
@@ -154,7 +158,7 @@ public class EngineImpl implements Engine {
         }
 
         public void run() {
-            while (state.equals(EngineImpl.State.TRADING)) {
+            while (settings.getStatus().equals(Settings.EngineStatus.TRADING)) {
                 final PriorityBlockingQueue<Order> buyQueue = buyQueues.get(stockId);
                 final PriorityBlockingQueue<Order> sellQueue = sellQueues.get(stockId);
                 if (buyQueue.isEmpty() || sellQueue.isEmpty()) {

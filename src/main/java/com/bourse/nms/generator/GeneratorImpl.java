@@ -9,7 +9,6 @@ import com.bourse.nms.entity.Subscriber;
 import com.bourse.nms.entity.Symbol;
 import com.bourse.nms.log.ActivityLogger;
 import org.apache.log4j.Logger;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -131,13 +130,13 @@ public class GeneratorImpl implements Generator {
     }
 
     private void preOpeningGeneration() {
-        final long defaultWaitTime = (this.preOpeningTime * 60 * 1000 / (preOpeningBuyOrdersCount + preOpeningSellOrdersCount)) * 2;
+        final long defaultWaitTimeNano = ((((long)this.preOpeningTime) * 60 * 1000 * 1000000 / (preOpeningBuyOrdersCount + preOpeningSellOrdersCount)));
 
         //pre-opening sell orders
         new Thread(new Runnable() {
             @Override
             public void run() {
-                generate(defaultWaitTime, preOpeningSellOrdersCount, OrderSide.SELL);
+                generate(defaultWaitTimeNano, preOpeningSellOrdersCount, OrderSide.SELL);
             }
         }).start();
 
@@ -145,7 +144,7 @@ public class GeneratorImpl implements Generator {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                generate(defaultWaitTime, preOpeningBuyOrdersCount, OrderSide.BUY);
+                generate(defaultWaitTimeNano, preOpeningBuyOrdersCount, OrderSide.BUY);
             }
         }).start();
 
@@ -156,10 +155,10 @@ public class GeneratorImpl implements Generator {
         }
     }
 
-    private void generate(long defaultLatency, int totalOrders, OrderSide orderside) {
+    private void generate(long defaultLatencyNano, int totalOrders, OrderSide orderside) {
         final Random random = new Random();
         for (int counter = 0; working && counter < totalOrders; counter++) {
-            final long startTime = System.currentTimeMillis();
+            final long startTime = System.nanoTime();
             try {
                 final int stockId = stockIds.get(random.nextInt(stocksCount));
                 final Order order = randomOrder(orderside, stockId);
@@ -168,22 +167,22 @@ public class GeneratorImpl implements Generator {
             } catch (NMSException e) {
                 log.warn("Exception on putToQueue", e);
             }
-            final long latency = defaultLatency - (System.currentTimeMillis() - startTime);
+            final long latency = defaultLatencyNano - (System.nanoTime() - startTime);
             if (latency > 0) {
-                try {
-                    Thread.sleep(latency);
-                } catch (InterruptedException e) {
-                    log.warn("Couldn't wait properly", e);
-                }
+                //todo: can't wait for nano or micro seconds and the latency is smaller than milliseconds
             }
         }
     }
 
     @Override
     public void pauseProcess() {
-        //todo: this won't work...
-        this.working = false;
-        engine.pause();
+        if(this.working){
+            this.working = false;
+            engine.pause();
+        }else {
+            this.working = true;
+            engine.resume();
+        }
     }
 
     @Override

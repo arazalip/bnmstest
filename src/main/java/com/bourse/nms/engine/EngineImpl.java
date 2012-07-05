@@ -23,8 +23,8 @@ public class EngineImpl implements Engine {
 
     private final ActivityLogger acLog;
     private final static Logger log = Logger.getLogger(EngineImpl.class);
-    private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = new HashMap<>();
-    private final Map<Integer, PriorityBlockingQueue<Order>> sellQueues = new HashMap<>();
+    private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
+    private final Map<Integer, PriorityBlockingQueue<Order>> sellQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
     private final Map<Integer, TradingThread> tradingThreads = new HashMap<>();
     private final AtomicInteger orderPutCounter = new AtomicInteger(0);
     private final AtomicInteger tradeCounter = new AtomicInteger(0);

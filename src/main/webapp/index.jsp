@@ -49,8 +49,8 @@
         <span id="symbolsFileName" style="float: left;margin-right: 10px;"></span>
         <input id="symbolsFile" name="symbolsFile" type="file" class="fileUpload"
                onchange="fileUpload('<c:url value="index.do"/>','symbolsFile');
-                       document.getElementById('symbolsFileName').innerHTML=document.getElementById('symbolsFile').value;
-                       return false;"/>
+                    document.getElementById('symbolsFileName').innerHTML=document.getElementById('symbolsFile').value;
+                    return false;"/>
     </div>
     <form id="settingsForm" action="">
         <div class="form">
@@ -113,7 +113,8 @@
                     return false;
                 }
             }
-            else if ((values['totalBuyOrders'] / (values['preOpeningRunTime'] + values['tradingRunTime'])) * 60 > 100000) {
+            else if (((values['totalBuyOrders']+values['totalSellOrders']) /
+                    ((values['preOpeningRunTime'] * 60) + (values['tradingRunTime'] * 60))) > 100000) {
                 if (!confirm("Throughput will be more than 100,000 messages/second!")) {
                     return false;
                 }
@@ -144,11 +145,26 @@
                 var engineState = $.parseJSON(data).state;
                 switch (command){
                     case 'start':
-                        if(engineState == 'INITIALIZING' || engineState == 'WAITING')
-                        alert("<fmt:message key="settings_not_complete"/>");
-                        return false;
+                        if(engineState == 'INITIALIZING' || engineState == 'WAITING'){
+                            alert("<fmt:message key="settings_not_complete"/>");
+                            return false;
+                        }
+                        break;
+                    case 'pause':
+                        togglePauseGraph();
+                        break;
+                    case 'stop':
+                        stopGraph();
+                        break;
                 }
                 //alert(data);
+                $("#loading")
+                        .ajaxStart(function () {
+                            //do nothing
+                        })
+                        .ajaxComplete(function () {
+                            //do nothing
+                        });
                 $.ajax({
                     type:"GET",
                     dataType:"text",
@@ -159,10 +175,10 @@
             });
         }
 
-        function fileUpload(url, fileElementId, successFunction) {
+        function fileUpload(url, fileElementId) {
             $("#loading")
                     .ajaxStart(function () {
-                        $(this).center();
+                        //$(this).center();
                         $(this).show();
                     })
                     .ajaxComplete(function () {
@@ -185,7 +201,6 @@
                                 secureuri:false,
                                 fileElementId:fileElementId,
                                 dataType:"text",
-                                //dataType: 'json',
                                 success:function (data) {
                                     alert(data.replace(/<pre>/g, '').replace(/<\/pre>/g, ''));
                                 },
@@ -194,7 +209,7 @@
                                 }
                             }
                     );
-            return false;
+            //return false;
         }
 
         $(document).ready(function () {
@@ -244,8 +259,7 @@
         xaxis:{
             min:0,
             max:20
-        },
-        title:"Mouse Drag"
+        }
     };
     var container = document.getElementById("stats");
 
@@ -253,10 +267,10 @@
         var o = Flotr._.extend(Flotr._.clone(options), opts || {});
         return Flotr.draw(container,
                 [
-                    { label:"PutOrderCount", data:d1},
-                    {label:"TradeCount", data:d2},
-                    {label:"BuyQueueSize", data:d3},
-                    {label:"SellQueueSize", data:d4}
+                    {label:"<fmt:message key="PutOrderCount"/>", data:d1},
+                    {label:"<fmt:message key="TradeCount"/>", data:d2},
+                    {label:"<fmt:message key="BuyQueueSize"/>", data:d3},
+                    {label:"<fmt:message key="SellQueueSize"/>", data:d4}
                 ], o);
     }
 
@@ -292,8 +306,12 @@
     Flotr.EventAdapter.observe(graph.overlay, "mousedown", initializeDrag);
 
     var index = 0;
+    var paused = false;
     function startGraph() {
+        paused = false;
         setInterval(function () {
+            if(paused)
+                return;
             $.ajax({
                 type:"GET",
                 dataType:"text",
@@ -316,6 +334,17 @@
             drawGraph(optional);
 
         }, 1000);
+    }
+    function togglePauseGraph(){
+        paused=!paused;
+    }
+    function stopGraph(){
+        d1= [];
+        d2 = [];
+        d3 = [];
+        d4 = [];
+        paused = true;
+        drawGraph();
     }
 
 </script>

@@ -93,7 +93,7 @@
     <br/>
     <button class="command" onclick="sendCommand('pause');"><fmt:message key="pause_process"/></button>
     <br/>
-    <button class="command" onclick="sendCommand('restart');"><fmt:message key="restart_process"/></button>
+    <button class="command" onclick="sendCommand('restart');startGraph();"><fmt:message key="restart_process"/></button>
     <br/>
     <button class="command" onclick="sendCommand('stop');"><fmt:message key="stop_process"/></button>
     <br/>
@@ -158,33 +158,17 @@
                         break;
                 }
                 //alert(data);
-                $("#loading")
-                        .ajaxStart(function () {
-                            //do nothing
-                        })
-                        .ajaxComplete(function () {
-                            //do nothing
-                        });
                 $.ajax({
                     type:"GET",
                     dataType:"text",
                     url:"<c:url value="command.do?action="/>" + command
                 }).done(function (data) {
-                    //alert(data);
+                    //do nothing
                 });
             });
         }
 
         function fileUpload(url, fileElementId) {
-            $("#loading")
-                    .ajaxStart(function () {
-                        //$(this).center();
-                        $(this).show();
-                    })
-                    .ajaxComplete(function () {
-                        $(this).hide();
-                    });
-
             /*
              prepareing ajax file upload
              url: the url of script file handling the uploaded files
@@ -242,19 +226,11 @@
 </div>
 <div id="stats"></div>
 <script type="text/javascript">
-    var d1 = [
-                []
-            ],
-            d2 = [
-                []
-            ],
-            d3 = [
-                []
-            ],
-            d4 = [
-                []
-            ],
-            options, graph, start, i;
+    var d1 = [[]],
+        d2 = [[]],
+        d3 = [[]],
+        d4 = [[]],
+        options, graph, start, i;
     options = {
         xaxis:{
             min:0,
@@ -282,7 +258,6 @@
         Flotr.EventAdapter.observe(document, "mousemove", move);
         Flotr.EventAdapter.observe(document, "mouseup", stopDrag);
     }
-
 
     function move(e) {
         var end = graph.getEventPosition(e),
@@ -315,24 +290,25 @@
             $.ajax({
                 type:"GET",
                 dataType:"text",
-                url:"<c:url value="index.do?info=1"/>"
+                url:"<c:url value="index.do?info=1"/>",
+                timeout:900
             }).done(function (data) {
-                        var info = $.parseJSON(data);
-                        //alert(info.toString());
-                        d1.push([++index, info.putOrderCount]);
-                        d2.push([index, info.tradeCount]);
-                        d3.push([index, info.buyQueueSize]);
-                        d4.push([index, info.sellQueueSize]);
-                    });
-            var optional = {};
-            if (!drag) {
-                optional = {xaxis:{
-                    min:Math.abs(20 - (index + 1)),
-                    max:index + 1
-                }}
-            }
-            drawGraph(optional);
-
+                var info = $.parseJSON(data);
+                //alert(info.toString());
+                d1.push([index, info.putOrderCount]);
+                d2.push([index, info.tradeCount]);
+                d3.push([index, info.buyQueueSize]);
+                d4.push([index, info.sellQueueSize]);
+                var optional = {};
+                if (!drag) {
+                    optional = {xaxis:{
+                        min:index < 20 ? 0 : Math.abs(20 - (index)),
+                        max:index < 20 ? 20 : index
+                    }}
+                }
+                drawGraph(optional);
+                index++;
+            });
         }, 1000);
     }
     function togglePauseGraph(){
@@ -343,6 +319,7 @@
         d2 = [];
         d3 = [];
         d4 = [];
+        index = 0;
         paused = true;
         drawGraph();
     }

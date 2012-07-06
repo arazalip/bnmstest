@@ -3,7 +3,6 @@ package com.bourse.nms.web;
 import com.bourse.nms.common.NMSException;
 import com.bourse.nms.generator.Generator;
 import org.apache.log4j.Logger;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -24,11 +23,13 @@ public class CommandServlet extends HttpServlet {
     private final Logger log = Logger.getLogger(CommandServlet.class);
 
     private Generator generator;
+    //private ActivityLogger activityLogger;
 
     public void init() {
         log.debug("Command Servlet Init...");
         final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         generator = (Generator) context.getBean("generator");
+        //activityLogger = (ActivityLogger) context.getBean("activityLogger");
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -37,6 +38,7 @@ public class CommandServlet extends HttpServlet {
         switch (action) {
             case "start":
                 try {
+                    //activityLogger.init(String.valueOf(System.currentTimeMillis()));
                     generator.startProcess();
                     resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {
@@ -55,6 +57,7 @@ public class CommandServlet extends HttpServlet {
                 break;
             case "restart":
                 try {
+                    //activityLogger.init(System.currentTimeMillis() + ".log");
                     generator.restartProcess();
                     resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {

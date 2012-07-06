@@ -2,6 +2,9 @@ package com.bourse.nms.log;
 
 import org.apache.log4j.Logger;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -14,29 +17,35 @@ import java.util.concurrent.BlockingQueue;
  */
 public class ActivityLogger {
 
+    /**
+     * initialized with size needed for 1 hour of working with 100000 messages/second
+     */
+    private final BlockingQueue<String> q;
     private static final Logger logger = Logger.getLogger(ActivityLogger.class);
-    private final BlockingQueue<String> q = new ArrayBlockingQueue<String>(50000000);
 
-    public void init(int queueSize){
-        //q = new ArrayBlockingQueue<String>(queueSize);
+    boolean working =true;
+
+    public ActivityLogger(int activityLoggerQueueSize) {
+        this.q = new ArrayBlockingQueue<String>(activityLoggerQueueSize);
     }
 
-    public ActivityLogger(){
-
-            new Thread(){
-                public void run(){
-                    while (true){
-                        try {
-                            if(q != null)
-                                logger.info(q.take());
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+    public void init(String fileName) throws IOException {
+        final BufferedWriter bw = new BufferedWriter(new FileWriter("/var/log/bnms/" + fileName));
+        new Thread(){
+            public void run(){
+                while (working){
+                    try {
+                        if(q != null)
+                            bw.write(q.take()+"\n");
+                            //logger.info(q.take());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
-            }.start();
-
-
+            }
+        }.start();
     }
 
     public void log(String msg) {

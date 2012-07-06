@@ -11,6 +11,7 @@ import com.bourse.nms.log.ActivityLogger;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -102,19 +103,31 @@ public class GeneratorImpl implements Generator {
         for (Subscriber s : customers) {
             this.customers.add(s);
         }
-        activityLogger.init(buyOrdersCount + sellOrdersCount);
         settings.setStatus(Settings.EngineStatus.SETTINGS_COMPLETE);
         working = true;
     }
 
+
     @Override
     public void startProcess() {
+
+        final String processStartTime = String.valueOf(System.currentTimeMillis());
+        try {
+            activityLogger.init(processStartTime + "_pre-opening.log");
+        } catch (IOException e) {
+            log.warn("exception on activity log file", e);
+        }
         log.debug("Starting pre-opening phase");
         engine.startPreOpening();
         preOpeningGeneration();
         log.info("finished pre-opening generation");
 
         log.info("starting trading session");
+        try {
+            activityLogger.init(processStartTime + "_trading.log");
+        } catch (IOException e) {
+            log.warn("exception on activity log file", e);
+        }
         engine.startTrading();
         final Thread buyOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.BUY, tradingTime));
         final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.SELL, tradingTime));
@@ -169,7 +182,7 @@ public class GeneratorImpl implements Generator {
             }
             final long latency = defaultLatencyNano - (System.nanoTime() - startTime);
             if (latency > 0) {
-                //todo: can't wait for nano or micro seconds and the latency is smaller than milliseconds
+                //can't wait for nano or micro seconds, and the latency is smaller than milliseconds
             }
         }
     }

@@ -16,13 +16,12 @@
     </bean>
 
     <context:annotation-config />
-    <bean id="activityLogger" class="com.bourse.nms.log.ActivityLogger"/>
-    <bean id="generator" class="com.bourse.nms.generator.GeneratorImpl">
+    <bean id="activityLogger" class="com.bourse.nms.log.ActivityLogger">
+        <constructor-arg index="0" value="${activity_logger_queue_size}"/>
     </bean>
-
+    <bean id="generator" class="com.bourse.nms.generator.GeneratorImpl"/>
     <bean id="engine" class="com.bourse.nms.engine.EngineImpl">
-        <constructor-arg index="0" ref="activityLogger"/>
-            </bean>
-
+        <constructor-arg index="0" value="${queues_initial_size}"/>
+    </bean>
     <bean id="settings" class="com.bourse.nms.entity.Settings"/>
 </beans>

@@ -21,10 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class EngineImpl implements Engine {
 
-    private final ActivityLogger acLog;
+    @Autowired
+    private ActivityLogger acLog;
     private final static Logger log = Logger.getLogger(EngineImpl.class);
     private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
+    private final AtomicInteger buyQueuesSizes = new AtomicInteger(0);
     private final Map<Integer, PriorityBlockingQueue<Order>> sellQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
+    private final AtomicInteger sellQueuesSizes = new AtomicInteger(0);
     private final Map<Integer, TradingThread> tradingThreads = new HashMap<>();
     private final AtomicInteger orderPutCounter = new AtomicInteger(0);
     private final AtomicInteger tradeCounter = new AtomicInteger(0);
@@ -33,9 +36,9 @@ public class EngineImpl implements Engine {
     private Settings settings;
 
     private Settings.EngineStatus prevState = null;
-
-    public EngineImpl(ActivityLogger acLog) {
-        this.acLog = acLog;
+    private final int queuesInitialSize;
+    public EngineImpl(int queuesInitialSize) {
+        this.queuesInitialSize = queuesInitialSize;
     }
 
     @Override
@@ -52,7 +55,7 @@ public class EngineImpl implements Engine {
         if (orderSide.equals(OrderSide.BUY)) {
             if (!buyQueues.containsKey(stockId)) {
                 //todo: set initial capacity for an hour with 100,000 messages/second
-                buyQueues.put(stockId, new PriorityBlockingQueue<>(3000000, new Comparator<Order>() {
+                buyQueues.put(stockId, new PriorityBlockingQueue<>(queuesInitialSize, new Comparator<Order>() {
                     @Override
                     public int compare(Order o1, Order o2) {
                         return o2.compareTo(o1);
@@ -60,11 +63,13 @@ public class EngineImpl implements Engine {
                 }));
             }
             buyQueues.get(stockId).add(order);
+            buyQueuesSizes.incrementAndGet();
         } else {
             if (!sellQueues.containsKey(stockId)) {
-                sellQueues.put(stockId, new PriorityBlockingQueue<Order>(3000000));
+                sellQueues.put(stockId, new PriorityBlockingQueue<Order>(queuesInitialSize));
             }
             sellQueues.get(stockId).add(order);
+            sellQueuesSizes.incrementAndGet();
         }
 
         orderPutCounter.incrementAndGet();
@@ -114,6 +119,8 @@ public class EngineImpl implements Engine {
         tradingThreads.clear();
         orderPutCounter.set(0);
         tradeCounter.set(0);
+        sellQueuesSizes.set(0);
+        buyQueuesSizes.set(0);
     }
 
     @Override
@@ -134,20 +141,12 @@ public class EngineImpl implements Engine {
 
     @Override
     public int getBuyQueueSize() {
-        int result = 0;
-        for (Queue q : buyQueues.values()) {
-            result += q.size();
-        }
-        return result;
+        return buyQueuesSizes.get();
     }
 
     @Override
     public int getSellQueueSize() {
-        int result = 0;
-        for (Queue q : sellQueues.values()) {
-            result += q.size();
-        }
-        return result;
+        return sellQueuesSizes.get();
     }
 
     public class TradingThread extends Thread {
@@ -161,20 +160,15 @@ public class EngineImpl implements Engine {
             while (settings.getStatus().equals(Settings.EngineStatus.TRADING)) {
                 final PriorityBlockingQueue<Order> buyQueue = buyQueues.get(stockId);
                 final PriorityBlockingQueue<Order> sellQueue = sellQueues.get(stockId);
-                if (buyQueue.isEmpty() || sellQueue.isEmpty()) {
-                    try {
-                        log.debug("sell or buy queue is empty. sellQueue: " + sellQueue.size() + ", buyQueue: " + buyQueue.size());
-                        synchronized (this) {//same as notify
-                            this.wait();
-                            continue;
-                        }
-                    } catch (InterruptedException e) {
-                        //log.warn("InterruptedException on trading thread wait while queues are empty", e);
-                        log.warn("InterruptedException on trading thread wait while queues are empty", e);
-                    }
+                final Order buyOrder;
+                final Order sellOrder;
+                try {
+                    buyOrder = buyQueue.take();
+                    sellOrder = sellQueue.take();
+                } catch (InterruptedException e) {
+                    log.warn("InterruptedException on trading thread wait for empty queue", e);
+                    return;
                 }
-                final Order buyOrder = buyQueue.poll();
-                final Order sellOrder = sellQueue.poll();
                 if (buyOrder.getPrice() < sellOrder.getPrice()) {
                     //log.warn("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
                     //acLog.log("trade could not be done with queue heads");

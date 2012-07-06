@@ -69,7 +69,10 @@ public interface Engine {
      */
     public int getSellQueueSize();
 
-
+    /**
+     * returns mean put order per seconds
+     * @return mean put order per second
+     */
     public int getMeanPutOrder();
     public int getMinPutOrder();
     public int getMaxPutOrder();

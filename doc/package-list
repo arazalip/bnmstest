@@ -1,0 +1,7 @@
+com.bourse.nms
+com.bourse.nms.common
+com.bourse.nms.engine
+com.bourse.nms.entity
+com.bourse.nms.generator
+com.bourse.nms.log
+com.bourse.nms.web

@@ -118,7 +118,6 @@ public class GeneratorImpl implements Generator {
         engine.startPreOpening();
         preOpeningGeneration();
         log.info("finished pre-opening generation");
-
         engine.startTrading();
         final Thread buyOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.BUY, tradingTime));
         final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.SELL, tradingTime));
@@ -163,13 +162,16 @@ public class GeneratorImpl implements Generator {
     private void generate(long defaultLatencyNano, int totalOrders, OrderSide orderside) {
         final Random random = new Random();
         for (int counter = 0; counter < totalOrders; counter++) {
-
-            while (!working){
+            while (settings.getStatus().equals(Settings.EngineStatus.PAUSED)){
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
                     log.warn("exception on generator waiting while !working", e);
                 }
+            }
+            if(!settings.getStatus().equals(Settings.EngineStatus.PRE_OPENING) &&
+                    !settings.getStatus().equals(Settings.EngineStatus.TRADING)){
+                break;
             }
 
             final long startTime = System.nanoTime();
@@ -204,7 +206,7 @@ public class GeneratorImpl implements Generator {
         log.info("restarting process...");
         engine.restart();
         stopProcess();
-        startProcess();
+        //startProcess();
 
     }
 

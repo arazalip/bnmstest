@@ -17,4 +17,5 @@ for a in $LIB/*.jar; do
 done
 
 export CLASSPATH=$CP
-java $OPTS $MAIN_CLASS
+echo "running with: $JAVA_OPTS $OPTS $MAIN_CLASS"
+java $JAVA_OPTS $OPTS $MAIN_CLASS

@@ -291,6 +291,7 @@
         var graphIntervalHandle = setInterval(function () {
             if(paused)
                 return;
+            index++;
             $.ajax({
                 type:"GET",
                 dataType:"text",
@@ -311,7 +312,7 @@
                     }}
                 }
                 drawGraph(optional);
-                index++;
+
             });
         }, 1000);
 

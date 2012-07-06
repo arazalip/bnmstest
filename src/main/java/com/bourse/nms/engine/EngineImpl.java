@@ -77,6 +77,7 @@ public class EngineImpl implements Engine {
     private final AtomicInteger maximumTradePerSeconds = new AtomicInteger(0);
     private final AtomicInteger meanTradePerSeconds = new AtomicInteger(0);
 
+    private Timer statsTimer = new Timer();
 
     /**
      * queues initial size
@@ -90,8 +91,11 @@ public class EngineImpl implements Engine {
      */
     public EngineImpl(int queuesInitialSize) {
         this.queuesInitialSize = queuesInitialSize;
+    }
 
-        final Timer statsTimer = new Timer();
+    @Override
+    public void startPreOpening() {
+        restart();
         statsTimer.schedule(new TimerTask() {
             int lastPutOrderCount = 0;
             int lastTradeCount = 0;
@@ -129,10 +133,7 @@ public class EngineImpl implements Engine {
                 }
             }
         }, 0, 1000);
-    }
 
-    @Override
-    public void startPreOpening() {
         settings.setStatus(Settings.EngineStatus.PRE_OPENING);
     }
 
@@ -214,6 +215,8 @@ public class EngineImpl implements Engine {
 
     @Override
     public void restart() {
+        statsTimer.cancel();
+        statsTimer = new Timer();
         buyQueues.clear();
         sellQueues.clear();
         tradingThreads.clear();
@@ -295,7 +298,8 @@ public class EngineImpl implements Engine {
         }
 
         public void run() {
-            while (settings.getStatus().equals(Settings.EngineStatus.TRADING) || settings.getStatus().equals(Settings.EngineStatus.PAUSED)) {
+            while (settings.getStatus().equals(Settings.EngineStatus.TRADING)
+                    || settings.getStatus().equals(Settings.EngineStatus.PAUSED)) {
                 if(settings.getStatus().equals(Settings.EngineStatus.PAUSED)){
                     while(settings.getStatus().equals(Settings.EngineStatus.PAUSED)){
                         try {

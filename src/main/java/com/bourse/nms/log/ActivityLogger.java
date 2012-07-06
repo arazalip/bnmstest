@@ -83,6 +83,13 @@ public class ActivityLogger {
     }
 
     public void closeWriters() {
+        while (!preOpeningQueue.isEmpty() || !tradingQueue.isEmpty()){
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.warn("exception on waiting for activity log queues get empty", e);
+            }
+        }
         working = false;
     }
 

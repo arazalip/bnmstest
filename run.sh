@@ -17,5 +17,4 @@ for a in $LIB/*.jar; do
 done
 
 export CLASSPATH=$CP
-export LC_ALL='fa_IR.utf8'
 java $OPTS $MAIN_CLASS

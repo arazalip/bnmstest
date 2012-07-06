@@ -74,6 +74,11 @@ public interface Engine {
      * @return mean put order per second
      */
     public int getMeanPutOrder();
+
+    /**
+     * returns min put order per second
+     * @return min put order per second
+     */
     public int getMinPutOrder();
     public int getMaxPutOrder();
     public int getMeanTrade();

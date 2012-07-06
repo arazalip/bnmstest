@@ -31,10 +31,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 5/31/12
- * Time: 2:05 PM
+ * main servlet of the application
  */
 public class MainServlet extends HttpServlet {
 

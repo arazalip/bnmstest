@@ -1,10 +1,7 @@
 package com.bourse.nms.entity;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 6/1/12
- * Time: 2:05 PM
+ * subscriber entity
  */
 public class Subscriber {
 

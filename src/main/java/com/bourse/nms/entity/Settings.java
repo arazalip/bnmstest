@@ -3,7 +3,7 @@ package com.bourse.nms.entity;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
+ * Software Settings. These settings are set from UI
  * User: araz
  * Date: 6/1/12
  * Time: 7:04 PM

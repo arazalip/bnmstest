@@ -14,29 +14,64 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 6/4/12
- * Time: 8:39 PM
+ * engine implementation
  */
 public class EngineImpl implements Engine {
 
+    private final static Logger log = Logger.getLogger(EngineImpl.class);
+
+    /**
+     * logs put orders and trades
+     */
     @Autowired
     private ActivityLogger acLog;
-    private final static Logger log = Logger.getLogger(EngineImpl.class);
-    private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
-    private final AtomicInteger buyQueuesSizes = new AtomicInteger(0);
-    private final Map<Integer, PriorityBlockingQueue<Order>> sellQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
-    private final AtomicInteger sellQueuesSizes = new AtomicInteger(0);
-    private final Map<Integer, TradingThread> tradingThreads = new HashMap<>();
-    private final AtomicInteger orderPutCounter = new AtomicInteger(0);
-    private final AtomicInteger tradeCounter = new AtomicInteger(0);
-    //private Settings.EngineStatus state = Settings.EngineStatus.WAITING;
+    /**
+     * system settings
+     */
     @Autowired
     private Settings settings;
-
+    /**
+     * a map containing buy queues by their stock id
+     */
+    private final Map<Integer, PriorityBlockingQueue<Order>> buyQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
+    /**
+     * to bother less when ui asks of sizes
+     */
+    private final AtomicInteger buyQueuesSizes = new AtomicInteger(0);
+    /**
+     * a map containing sell queues by their stock id
+     */
+    private final Map<Integer, PriorityBlockingQueue<Order>> sellQueues = Collections.synchronizedMap(new HashMap<Integer, PriorityBlockingQueue<Order>>());
+    /**
+     * to bother less when ui asks of sizes
+     */
+    private final AtomicInteger sellQueuesSizes = new AtomicInteger(0);
+    /**
+     * threads that will do trading. a separate thread for each stock
+     */
+    private final Map<Integer, TradingThread> tradingThreads = new HashMap<>();
+    /**
+     * shows how many orders have been put in engine queues
+     */
+    private final AtomicInteger orderPutCounter = new AtomicInteger(0);
+    /**
+     * increments by each trade that is done
+     */
+    private final AtomicInteger tradeCounter = new AtomicInteger(0);
+    /**
+     * engine previous state is stored for pause/resume implementation
+     */
     private Settings.EngineStatus prevState = null;
+    /**
+     * queues initial size
+     */
     private final int queuesInitialSize;
+
+    /**
+     * default constructor
+     * @param queuesInitialSize should be set regarding JVM memory and number of stocks.
+     * with 4096MB of JVM memory, 48 stocks and queuesInitialSize=3000000 OutOfMemory is not happening
+     */
     public EngineImpl(int queuesInitialSize) {
         this.queuesInitialSize = queuesInitialSize;
     }
@@ -170,8 +205,7 @@ public class EngineImpl implements Engine {
                     return;
                 }
                 if (buyOrder.getPrice() < sellOrder.getPrice()) {
-                    //log.warn("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
-                    //acLog.log("trade could not be done with queue heads");
+                    log.debug("trade could not be done with queue heads. putOrderCount:" + orderPutCounter + ", buy queue size:" + buyQueue.size() + ", sell queue size:" +sellQueue.size());
                     try {
                         buyQueue.add(buyOrder);
                         sellQueue.add(sellOrder);
@@ -182,8 +216,6 @@ public class EngineImpl implements Engine {
                         log.warn("InterruptedException on trading thread wait while no more trades could be made", e);
                     }
                 } else {
-                    //it would be better to remove final from BuyOrder's totalQuantity or  make it atomic,
-                    // so it shouldn't be removed and replaced in the queue
                     if (buyOrder.getTotalQuantity() > sellOrder.getTotalQuantity()) {
                         buyQueue.add(new Order((buyOrder.getTotalQuantity() - sellOrder.getTotalQuantity()),
                                 buyOrder.getSubscriberId(),
@@ -198,61 +230,11 @@ public class EngineImpl implements Engine {
                     }
                     acLog.log("T:" + stockId + " b:" + buyOrder + " s:" + sellOrder);
                     tradeCounter.incrementAndGet();
-                    //log.debug("sell queue size: " + sellQueue.size() + ", buy queue size: " + buyQueue.size() + ", putOrderCount: " + orderPutCounter.get() + ", tradeCount: " + tradeCounter.get());
+                    log.debug("sell queue size: " + sellQueue.size() + ", buy queue size: " + buyQueue.size() + ", putOrderCount: " + orderPutCounter.get() + ", tradeCount: " + tradeCounter.get());
                 }
             }
         }
 
     }
 
-    public static void main(String[] args) throws NMSException, InterruptedException {
-
-/*
-        Engine e = new EngineImpl(new ActivityLogger());
-        log.debug("system millis: " + System.currentTimeMillis());
-        e.startPreOpening();
-        log.debug("pre opening started. --" + "system millis: " + System.currentTimeMillis());
-        final int totalOrderCount = 30000000;
-        putOrders(e, totalOrderCount);
-        Thread.sleep(30 * 1000);
-        log.debug(totalOrderCount + "orders put. --" + "system millis: " + System.currentTimeMillis());
-        e.startTrading();
-        log.debug("trading started. --" + "system millis: " + System.currentTimeMillis());
-        putOrders(e, totalOrderCount);
-        Thread.sleep(300 * 1000);
-        log.debug(totalOrderCount + "orders put. --" + "system millis: " + System.currentTimeMillis());
-        e.stop();
-        log.debug("stopped. --" + "system millis: " + System.currentTimeMillis());
-    }
-
-    public static void putOrders(final Engine e, final int totalCount) throws NMSException {
-        final Random r = new Random();
-        Thread t1 = new Thread() {
-            public void run() {
-                for (int i = 0; i < totalCount / 2; i++) {
-                    try {
-                        e.putOrder(new Order(r.nextInt(100), (byte) 1, r.nextInt(1000), 1), OrderSide.BUY, r.nextInt(10) + 1);
-                    } catch (NMSException e1) {
-                        log.warn("NMSException: " + e);
-                    }
-                }
-            }
-        };
-        t1.start();
-
-        Thread t2 = new Thread() {
-            public void run() {
-                for (int i = 0; i < totalCount / 2; i++) {
-                    try {
-                        e.putOrder(new Order(r.nextInt(100), (byte) 1, r.nextInt(1000), 1), OrderSide.SELL, r.nextInt(10) + 1);
-                    } catch (NMSException e1) {
-                        log.warn("NMSException: " + e);
-                    }
-                }
-            }
-        };
-        t2.start();
-*/
-
-    }
 }

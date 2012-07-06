@@ -5,10 +5,7 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 6/4/12
- * Time: 1:38 AM
+ * price generator based on stock properties
  */
 public class PriceGenerator {
     private final static Map<Integer, Random> stockRandomGenerators = new HashMap<>();

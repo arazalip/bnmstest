@@ -12,10 +12,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 5/19/12
- * Time: 8:39 PM
+ * software main. application launcher.
+ * starts embedded tomcat and initializes spring context.
  */
 public class Launcher {
 
@@ -25,7 +23,6 @@ public class Launcher {
         final Tomcat tomcat = new Tomcat();
         tomcat.setPort(8080);  // Default connector
         addConnector(8082, false, tomcat, null);
-        //addConnector(443, true, tomcat, certificateStores);
         final URL location = new File("target/bnmstest-1.0").toURI().toURL();
         log.debug("Using webapp at " + location.toExternalForm());
         tomcat.addWebapp("/", location.toURI().getPath());

@@ -3,10 +3,7 @@ package com.bourse.nms.web;
 import com.bourse.nms.common.NMSException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 6/1/12
- * Time: 6:29 PM
+ * the response that is to be returned by servlets
  */
 public class AjaxResponse {
 

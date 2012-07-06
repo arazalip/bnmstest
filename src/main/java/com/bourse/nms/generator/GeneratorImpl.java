@@ -15,10 +15,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: amin
- * Date: 6/1/12
- * Time: 12:48 PM
+ * generator implementation
  */
 public class GeneratorImpl implements Generator {
 

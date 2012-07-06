@@ -13,23 +13,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 6/1/12
- * Time: 5:29 PM
+ * sends commands to generator
  */
 public class CommandServlet extends HttpServlet {
 
     private final Logger log = Logger.getLogger(CommandServlet.class);
-
     private Generator generator;
-    //private ActivityLogger activityLogger;
 
     public void init() {
         log.debug("Command Servlet Init...");
         final ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
         generator = (Generator) context.getBean("generator");
-        //activityLogger = (ActivityLogger) context.getBean("activityLogger");
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -38,7 +32,6 @@ public class CommandServlet extends HttpServlet {
         switch (action) {
             case "start":
                 try {
-                    //activityLogger.init(String.valueOf(System.currentTimeMillis()));
                     generator.startProcess();
                     resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {

@@ -10,38 +10,36 @@ import java.util.concurrent.BlockingQueue;
 
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 6/4/12
- * Time: 11:12 PM
+ * logs orders and trades
  */
 public class ActivityLogger {
 
-    /**
-     * initialized with size needed for 1 hour of working with 100000 messages/second
-     */
     private final BlockingQueue<String> q;
-    private static final Logger logger = Logger.getLogger(ActivityLogger.class);
+    private final String logPath;
+    private static final Logger log = Logger.getLogger(ActivityLogger.class);
 
     boolean working =true;
 
-    public ActivityLogger(int activityLoggerQueueSize) {
-        this.q = new ArrayBlockingQueue<String>(activityLoggerQueueSize);
+    public ActivityLogger(int activityLoggerQueueSize, String logPath) {
+        this.q = new ArrayBlockingQueue<>(activityLoggerQueueSize);
+        this.logPath = logPath;
     }
 
+    /**
+     * initializes activity logger with a file that will be creates in log path
+     * @param fileName file name
+     * @throws IOException
+     */
     public void init(String fileName) throws IOException {
-        final BufferedWriter bw = new BufferedWriter(new FileWriter("/var/log/bnms/" + fileName));
+        final BufferedWriter bw = new BufferedWriter(new FileWriter(logPath + fileName));
         new Thread(){
             public void run(){
                 while (working){
                     try {
                         if(q != null)
                             bw.write(q.take()+"\n");
-                            //logger.info(q.take());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } catch (InterruptedException | IOException e) {
+                        log.warn("exception on writing activity log", e);
                     }
                 }
             }

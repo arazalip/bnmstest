@@ -21,7 +21,7 @@ public interface Engine {
      * @param stockId order stock id
      * @throws NMSException
      */
-    public void putOrder(Order order, OrderSide orderSide, int stockId) throws NMSException;
+    public void putOrder(Order order, OrderSide orderSide, int stockId, int tradeCost) throws NMSException;
 
     /**
      * starts trading process
@@ -31,17 +31,19 @@ public interface Engine {
     /**
      * pauses process
      */
-    public void pause();
+    public void pause() throws NMSException;
 
     /**
      * stops process
      */
-    public void stop();
+    public void stop() throws NMSException;
 
     /**
      * resumes a paused process
      */
     public void resume();
+
+    public void restart();
 
     /**
      * returns put order count
@@ -66,5 +68,15 @@ public interface Engine {
      * @return sell queues sizes
      */
     public int getSellQueueSize();
+
+
+    public int getMeanPutOrder();
+    public int getMinPutOrder();
+    public int getMaxPutOrder();
+    public int getMeanTrade();
+    public int getMinTrade();
+    public int getMaxTrade();
+    public long getTradesCost();
+
 
 }

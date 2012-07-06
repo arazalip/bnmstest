@@ -7,10 +7,7 @@ import com.bourse.nms.entity.Symbol;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: araz
- * Date: 6/1/12
- * Time: 2:02 PM
+ * Generator interface
  */
 public interface Generator {
     /**
@@ -40,7 +37,7 @@ public interface Generator {
      * pauses process
      * @throws NMSException
      */
-    public void pauseProcess() throws NMSException;
+    public void togglePauseProcess() throws NMSException;
 
     /**
      * restarts process

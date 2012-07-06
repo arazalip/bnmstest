@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: araz
-  Date: 5/31/12
-  Time: 6:12 PM
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -93,7 +86,7 @@
     <br/>
     <button class="command" onclick="sendCommand('pause');"><fmt:message key="pause_process"/></button>
     <br/>
-    <button class="command" onclick="sendCommand('restart');startGraph();"><fmt:message key="restart_process"/></button>
+    <button class="command" onclick="sendCommand('restart');"><fmt:message key="restart_process"/></button>
     <br/>
     <button class="command" onclick="sendCommand('stop');"><fmt:message key="stop_process"/></button>
     <br/>
@@ -135,7 +128,7 @@
             }, "text");
             return false;
         });
-
+        var stopped=true;
         function sendCommand(command) {
             $.ajax({
                 type:"GET",
@@ -145,17 +138,27 @@
                 var engineState = $.parseJSON(data).state;
                 switch (command){
                     case 'start':
+                        stopped = false;
                         if(engineState == 'INITIALIZING' || engineState == 'WAITING'){
                             alert("<fmt:message key="settings_not_complete"/>");
                             return false;
                         }
                         break;
                     case 'pause':
-                        togglePauseGraph();
+                        if(!stopped)
+                            togglePauseGraph();
+                        else
+                            return;
                         break;
                     case 'stop':
+                        stopped = true;
+                        pauseGraph();
+                        break;
+                    case 'restart':
+                        stopped = false;
                         stopGraph();
                         break;
+
                 }
                 //alert(data);
                 $.ajax({
@@ -225,6 +228,8 @@
     </script>
 </div>
 <div id="stats"></div>
+
+<div id="footer" style="float: left;margin-top: 10px;margin-left: 35px;"><fmt:message key="created_by_safa"/></div>
 <script type="text/javascript">
     var d1 = [[]],
         d2 = [[]],
@@ -251,6 +256,8 @@
     }
 
     graph = drawGraph();
+
+    //<drag>
     var drag = false;
     function initializeDrag(e) {
         drag = true;
@@ -258,7 +265,6 @@
         Flotr.EventAdapter.observe(document, "mousemove", move);
         Flotr.EventAdapter.observe(document, "mouseup", stopDrag);
     }
-
     function move(e) {
         var end = graph.getEventPosition(e),
                 xaxis = graph.axes.x,
@@ -271,20 +277,18 @@
         });
         Flotr.EventAdapter.observe(graph.overlay, "mousedown", initializeDrag);
     }
-
-
     function stopDrag() {
         drag = false;
         Flotr.EventAdapter.stopObserving(document, "mousemove", move);
     }
-
     Flotr.EventAdapter.observe(graph.overlay, "mousedown", initializeDrag);
+    //</drag>
 
     var index = 0;
     var paused = false;
     function startGraph() {
         paused = false;
-        setInterval(function () {
+        var graphIntervalHandle = setInterval(function () {
             if(paused)
                 return;
             $.ajax({
@@ -303,16 +307,57 @@
                 if (!drag) {
                     optional = {xaxis:{
                         min:index < 20 ? 0 : Math.abs(20 - (index)),
-                        max:index < 20 ? 20 : index
+                        max:index < 20 ? 20 : index+1
                     }}
                 }
                 drawGraph(optional);
                 index++;
             });
         }, 1000);
+
+        var reportIntervalHandle = setInterval(function (){
+            $.ajax({
+                type:"GET",
+                dataType:"text",
+                url:"<c:url value="index.do?state=true"/>"
+            }).done(function (data) {
+                var engineState = $.parseJSON(data).state;
+                if(engineState == "FINISHED"){
+                    $.ajax({
+                        type:"GET",
+                        dataType:"text",
+                        url:"<c:url value="index.do?report=1"/>",
+                        timeout:900
+                    }).done(function (data) {
+                        paused=true;
+                        var info = $.parseJSON(data);
+                        var parameters = "?"+"meanPutOrder="+info.meanPutOrder+"&minPutOrder="+info.minPutOrder+"&maxPutOrder="+info.maxPutOrder+"&meanTrade="+info.meanTrade+"&minTrade="+info.minTrade+"&maxTrade="+info.maxTrade+"&tradeCount="+info.tradeCount+"&tradesCost="+info.tradesCost+"&putOrderCount="+info.putOrderCount;
+                        var align = 'center';									//Valid values; left, right, center
+                        var top = 30; 											//Use an integer (in pixels)
+                        var width = 500; 										//Use an integer (in pixels)
+                        var padding = 10;										//Use an integer (in pixels)
+                        var backgroundColor = '#FFFFFF'; 						//Use any hex code
+                        var borderColor = '#333333'; 							//Use any hex code
+                        var borderWeight = 4; 									//Use an integer (in pixels)
+                        var borderRadius = 5; 									//Use an integer (in pixels)
+                        var fadeOutTime = 300; 									//Use any integer, 0 = no fade
+                        var disableColor = '#666666'; 							//Use any hex code
+                        var disableOpacity = 40; 								//Valid range 0-100
+                        var loadingImage = '<c:url value="/img/loading.gif"/>';		//Use relative path from this page
+
+                        modalPopup(align, top, width, padding, disableColor, disableOpacity, backgroundColor, borderColor, borderWeight, borderRadius, fadeOutTime, '<c:url value="report.jsp"/>'+parameters, loadingImage);
+                        clearInterval(reportIntervalHandle);
+                        clearInterval(graphIntervalHandle);
+                    });
+                }
+            });
+        }, 5000);
     }
     function togglePauseGraph(){
         paused=!paused;
+    }
+    function pauseGraph(){
+        paused = false;
     }
     function stopGraph(){
         d1= [];

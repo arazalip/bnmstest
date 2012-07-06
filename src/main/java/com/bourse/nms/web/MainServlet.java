@@ -78,6 +78,21 @@ public class MainServlet extends HttpServlet {
                     "\"state\":\"" + settings.getStatus().name() + "\""+
                     "}");
             return;
+        }else if(req.getParameter("report") != null){
+            resp.setContentType("application/json");
+            resp.getWriter().write("{" +
+                    "\"meanPutOrder\":\"" + engine.getMeanPutOrder() + "\", "+
+                    "\"minPutOrder\":\"" + engine.getMinPutOrder() + "\", "+
+                    "\"maxPutOrder\":\"" + engine.getMaxPutOrder() + "\", "+
+                    "\"meanTrade\":\"" + engine.getMeanTrade() + "\", "+
+                    "\"minTrade\":\"" + engine.getMinTrade() + "\", "+
+                    "\"maxTrade\":\"" + engine.getMaxTrade() + "\", "+
+                    "\"tradeCount\":\"" + engine.getTradeCount() + "\", "+
+                    "\"tradesCost\":\"" + engine.getTradesCost() + "\", "+
+                    "\"putOrderCount\":\"" + engine.getPutOrderCount() + "\""+
+                    "}");
+            return;
+
         }
 
         RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/index.jsp");

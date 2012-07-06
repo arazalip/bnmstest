@@ -12,7 +12,8 @@ public class NMSException extends Exception {
         INVALID_STATE_FOR_PUT_ORDER(-1),
         FILE_UPLOAD_EXCEPTION(-2),
         INVALID_SYMBOLS_FILE(-3),
-        SETTINGS_ERROR(-4);
+        SETTINGS_ERROR(-4),
+        INTERNAL_SERVER_ERROR(-5);
 
         private ErrorCode(int code){
             this.code = code;

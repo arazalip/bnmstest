@@ -65,7 +65,7 @@ public class GeneratorImpl implements Generator {
     }
 
     private void putToQueue(Order order, OrderSide orderSide, int stockId) throws NMSException {
-        engine.putOrder(order, orderSide, stockId);
+        engine.putOrder(order, orderSide, stockId, symbols.get(stockId).getTradePrice());
     }
 
     private Subscriber randomSubscriber() {
@@ -106,25 +106,19 @@ public class GeneratorImpl implements Generator {
 
 
     @Override
-    public void startProcess() {
-
-        final String processStartTime = String.valueOf(System.currentTimeMillis());
+    public void startProcess() throws NMSException {
+        working = true;
         try {
-            activityLogger.init(processStartTime + "_pre-opening.log");
+            activityLogger.init("aclog");
         } catch (IOException e) {
             log.warn("exception on activity log file", e);
+            throw new NMSException(NMSException.ErrorCode.INTERNAL_SERVER_ERROR, "exception on activity log file: "+e.getMessage());
         }
         log.debug("Starting pre-opening phase");
         engine.startPreOpening();
         preOpeningGeneration();
         log.info("finished pre-opening generation");
 
-        log.info("starting trading session");
-        try {
-            activityLogger.init(processStartTime + "_trading.log");
-        } catch (IOException e) {
-            log.warn("exception on activity log file", e);
-        }
         engine.startTrading();
         final Thread buyOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.BUY, tradingTime));
         final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.SELL, tradingTime));
@@ -134,6 +128,7 @@ public class GeneratorImpl implements Generator {
             Thread.sleep(tradingTime * 60 * 1000);
         } catch (InterruptedException e) {
             log.warn("exception on trading wait", e);
+            throw new NMSException(NMSException.ErrorCode.INTERNAL_SERVER_ERROR, "exception on trading wait: " + e.getMessage());
         }
         log.info("process finished");
         engine.stop();
@@ -167,7 +162,16 @@ public class GeneratorImpl implements Generator {
 
     private void generate(long defaultLatencyNano, int totalOrders, OrderSide orderside) {
         final Random random = new Random();
-        for (int counter = 0; working && counter < totalOrders; counter++) {
+        for (int counter = 0; counter < totalOrders; counter++) {
+
+            while (!working){
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    log.warn("exception on generator waiting while !working", e);
+                }
+            }
+
             final long startTime = System.nanoTime();
             try {
                 final int stockId = stockIds.get(random.nextInt(stocksCount));
@@ -175,7 +179,7 @@ public class GeneratorImpl implements Generator {
                 putToQueue(order, orderside, stockId);
 
             } catch (NMSException e) {
-                log.warn("Exception on putToQueue", e);
+                log.warn("Exception on putToQueue: " + e.getMessage());
             }
             final long latency = defaultLatencyNano - (System.nanoTime() - startTime);
             if (latency > 0) {
@@ -185,7 +189,7 @@ public class GeneratorImpl implements Generator {
     }
 
     @Override
-    public void pauseProcess() {
+    public void togglePauseProcess() throws NMSException {
         if(this.working){
             this.working = false;
             engine.pause();
@@ -196,14 +200,16 @@ public class GeneratorImpl implements Generator {
     }
 
     @Override
-    public void restartProcess() {
+    public void restartProcess() throws NMSException {
         log.info("restarting process...");
+        engine.restart();
         stopProcess();
         startProcess();
+
     }
 
     @Override
-    public void stopProcess() {
+    public void stopProcess() throws NMSException {
         this.working = false;
         engine.stop();
     }
@@ -226,37 +232,6 @@ public class GeneratorImpl implements Generator {
             final long defaultLatency = tradingDuration / ordersCount;
             generate(defaultLatency, ordersCount, orderSide);
             log.info("Finished generating orders for side: " + orderSide + ", time: " + System.nanoTime());
-        }
-    }
-
-    public static void main(String[] args) {
-
-        final int preopeningTime = 0;
-        final int tradingTime = 0;
-        final int buyOrdersCount = 10000000;
-        final int sellOrdersCount = 10000000;
-        final int preopeningBuyOrdersCount = 0;
-        final int preopeningSellOrdersCount = 0;
-        final int matchPercent = 0;
-        final Set<Symbol> symbols = new HashSet<>();
-        symbols.add(new Symbol(1, "1", "1", 100, 1000, 200, 2000, 10, 100, 10, 100, 500));
-        symbols.add(new Symbol(2, "2", "2", 200, 2000, 200, 2000, 20, 200, 20, 200, 500));
-        symbols.add(new Symbol(3, "3", "3", 300, 3000, 300, 3000, 30, 300, 30, 300, 500));
-
-        final Set<Subscriber> customers = new HashSet<>();
-        customers.add(new Subscriber(1, 1, 1));
-        customers.add(new Subscriber(2, 2, 2));
-        customers.add(new Subscriber(3, 3, 3));
-
-        Generator generator = new GeneratorImpl();
-        //testing this will throw NullPointerException right now...
-        try {
-            generator.setParameters(preopeningTime, tradingTime, buyOrdersCount, sellOrdersCount,
-                    preopeningBuyOrdersCount, preopeningSellOrdersCount, matchPercent, symbols, customers);
-            log.info("starting test @ " + System.nanoTime());
-            generator.startProcess();
-        } catch (NMSException e) {
-            e.printStackTrace();
         }
     }
 }

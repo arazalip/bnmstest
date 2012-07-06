@@ -2,6 +2,7 @@ body{
     direction: rtl;
     font-family: Tahoma,serif;
     font-size: 12px;
+    overflow-x: hidden;
 }
 #header{
     height: 100px;
@@ -58,8 +59,8 @@ body{
 }
 
 #stats{
-    margin-left: 50px;
-    float: left;
+    margin-right: 20px;
+    float: right;
     width: 810px;
     height: 390px;
 }

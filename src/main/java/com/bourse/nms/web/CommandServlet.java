@@ -60,7 +60,7 @@ public class CommandServlet extends HttpServlet {
                 break;
             case "pause":
                 try {
-                    generator.pauseProcess();
+                    generator.togglePauseProcess();
                     resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 } catch (NMSException e) {
                     log.warn("exception on sending pause command", e);

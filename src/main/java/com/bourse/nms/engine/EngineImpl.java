@@ -95,7 +95,7 @@ public class EngineImpl implements Engine {
 
     @Override
     public void startPreOpening() {
-        restart();
+        //restart();
         statsTimer.schedule(new TimerTask() {
             int lastPutOrderCount = 0;
             int lastTradeCount = 0;
@@ -114,7 +114,11 @@ public class EngineImpl implements Engine {
                         maximumPutOrderPerSeconds.set(putOrderDiff);
                     }
                     if(putOrderDiff > 0){
-                        meanPutOrderPerSeconds.set((putOrderDiff + meanPutOrderPerSeconds.get())/2);
+                        if(meanPutOrderPerSeconds.get() == 0){
+                            meanPutOrderPerSeconds.set(putOrderDiff);
+                        }else{
+                            meanPutOrderPerSeconds.set((putOrderDiff + meanPutOrderPerSeconds.get())/2);
+                        }
                     }
                     lastPutOrderCount += putOrderDiff;
                 }
@@ -127,7 +131,10 @@ public class EngineImpl implements Engine {
                         maximumTradePerSeconds.set(tradingDiff);
                     }
                     if(tradingDiff > 0){
-                        meanTradePerSeconds.set((tradingDiff + meanTradePerSeconds.get())/2);
+                        if(meanTradePerSeconds.get() == 0)
+                            meanTradePerSeconds.set(tradingDiff);
+                        else
+                            meanTradePerSeconds.set((tradingDiff + meanTradePerSeconds.get())/2);
                     }
                     lastTradeCount += tradingDiff;
                 }
@@ -167,14 +174,17 @@ public class EngineImpl implements Engine {
         if (!tradingThreads.containsKey(stockId)) {
             tradingThreads.put(stockId, new TradingThread(stockId, tradePrice));
         }
-        final TradingThread stockTradingThread = tradingThreads.get(stockId);
-        try{
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (stockTradingThread) {//thread can check itself to see if new orders have come, if this synchronize affects efficiency
-            stockTradingThread.notify();
-        }
-        }catch (NullPointerException e){
-            log.warn("NullPointerException on thread notify",e);
+
+        if(settings.getStatus().equals(Settings.EngineStatus.TRADING)){
+            final TradingThread stockTradingThread = tradingThreads.get(stockId);
+            try{
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (stockTradingThread) {//thread can check itself to see if new orders have come, if this synchronize affects efficiency
+                stockTradingThread.notify();
+            }
+            }catch (NullPointerException e){
+                log.warn("NullPointerException on thread notify",e);
+            }
         }
     }
 
@@ -182,7 +192,16 @@ public class EngineImpl implements Engine {
     public void startTrading() {
         settings.setStatus(Settings.EngineStatus.TRADING);
         for (TradingThread tt : tradingThreads.values()) {
-            tt.start();
+            try{
+                if(tt.isAlive()){
+                    log.warn("thread is alive! " + tt.toString());
+                    continue;
+                }
+                log.info("starting thread: " + tt);
+                tt.start();
+            }catch (Throwable e){
+                e.printStackTrace();
+            }
         }
     }
 
@@ -215,6 +234,7 @@ public class EngineImpl implements Engine {
 
     @Override
     public void restart() {
+        log.info("engine restarted");
         statsTimer.cancel();
         statsTimer = new Timer();
         buyQueues.clear();
@@ -231,6 +251,7 @@ public class EngineImpl implements Engine {
         minimumTradePerSeconds.set(Integer.MAX_VALUE);
         maximumTradePerSeconds.set(0);
         meanTradePerSeconds.set(0);
+        settings.setStatus(Settings.EngineStatus.WAITING);
     }
 
     @Override

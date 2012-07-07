@@ -12,7 +12,8 @@
     <link rel="stylesheet" type="text/css" href="<c:url value="css/ajaxfileupload.css"/>"/>
     <link rel="stylesheet" type="text/css" href="<c:url value="css/flotr.css"/>"/>
 </head>
-<body>
+<body style="width: 100%">
+<div style="width:1353px; margin: 0px auto;">
 <div id="header">
     <h1><fmt:message key="application.title"/></h1>
     <img src="<c:url value="/img/blogo.jpg"/>" alt="logo">
@@ -164,9 +165,16 @@
                 $.ajax({
                     type:"GET",
                     dataType:"text",
-                    url:"<c:url value="command.do?action="/>" + command
-                }).done(function (data) {
-                    //do nothing
+                    url:"<c:url value="command.do?action="/>" + command,
+                    beforeSend: function() {
+                        $("#loading").show();
+                    },
+                    complete: function(){
+                        $("#loading").hide();
+                    },
+                    success: function(data) {
+                        alert(data);
+                    }
                 });
             });
         }
@@ -231,10 +239,10 @@
 
 <div id="footer" style="float: left;margin-top: 10px;margin-left: 35px;"><fmt:message key="created_by_safa"/></div>
 <script type="text/javascript">
-    var d1 = [[]],
-        d2 = [[]],
-        d3 = [[]],
-        d4 = [[]],
+    var d1 = [[0,0]],
+        d2 = [[0,0]],
+        d3 = [[0,0]],
+        d4 = [[0,0]],
         options, graph, start, i;
     options = {
         xaxis:{
@@ -361,15 +369,16 @@
         paused = false;
     }
     function stopGraph(){
-        d1= [];
-        d2 = [];
-        d3 = [];
-        d4 = [];
+        d1= [[0,0]];
+        d2 = [[0,0]];
+        d3 = [[0,0]];
+        d4 = [[0,0]];
         index = 0;
         paused = true;
         drawGraph();
     }
 
 </script>
+</div>
 </body>
 </html>

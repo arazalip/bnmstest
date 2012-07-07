@@ -68,10 +68,12 @@ public class CommandServlet extends HttpServlet {
                 }
                 break;
             case "subFile":
+                resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 log.info("got sub file");
                 break;
             default:
                 log.warn("unknown command action: " + action);
+                resp.getWriter().write(new AjaxResponse(0, "OK").toString());
                 break;
         }
     }

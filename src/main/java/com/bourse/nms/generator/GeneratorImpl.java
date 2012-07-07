@@ -28,7 +28,7 @@ public class GeneratorImpl implements Generator {
     @Autowired
     private Settings settings;
 
-    private boolean working;
+    private volatile boolean working;
 
     private int preOpeningTime;   //in minutes
     private int tradingTime;  //in minutes
@@ -41,6 +41,8 @@ public class GeneratorImpl implements Generator {
     private Map<Integer, Symbol> symbols;
     private ArrayList<Integer> stockIds;
     private int stocksCount;
+
+    private Thread processStarter;
 
     public Order randomOrder(OrderSide orderSide, int stockId) {
         final Random random = new Random();
@@ -107,30 +109,44 @@ public class GeneratorImpl implements Generator {
 
     @Override
     public void startProcess() throws NMSException {
-        working = true;
-        try {
-            activityLogger.init("aclog");
-        } catch (IOException e) {
-            log.warn("exception on activity log file", e);
-            throw new NMSException(NMSException.ErrorCode.INTERNAL_SERVER_ERROR, "exception on activity log file: "+e.getMessage());
-        }
-        log.debug("Starting pre-opening phase");
-        engine.startPreOpening();
-        preOpeningGeneration();
-        log.info("finished pre-opening generation");
-        engine.startTrading();
-        final Thread buyOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.BUY, tradingTime));
-        final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.SELL, tradingTime));
-        buyOrderGenerator.start();
-        sellOrderGenerator.start();
-        try {
-            Thread.sleep(tradingTime * 60 * 1000);
-        } catch (InterruptedException e) {
-            log.warn("exception on trading wait", e);
-            throw new NMSException(NMSException.ErrorCode.INTERNAL_SERVER_ERROR, "exception on trading wait: " + e.getMessage());
-        }
-        log.info("process finished");
-        engine.stop();
+        processStarter = new Thread(){
+            public void run(){
+                working = true;
+                try {
+                    activityLogger.init("aclog");
+                } catch (IOException e) {
+                    log.warn("exception on activity log file", e);
+                    //throw new NMSException(NMSException.ErrorCode.INTERNAL_SERVER_ERROR, "exception on activity log file: "+e.getMessage());
+                }
+                log.debug("Starting pre-opening phase");
+                if(!working) return;
+                engine.startPreOpening();
+                if(!working) return;
+                preOpeningGeneration();
+                log.info("finished pre-opening generation");
+                if(!working) return;
+                engine.startTrading();
+                final Thread buyOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.BUY, tradingTime));
+                final Thread sellOrderGenerator = new Thread(new CountBasedOrderGenerator(OrderSide.SELL, tradingTime));
+                if(!working) return;
+                buyOrderGenerator.start();
+                sellOrderGenerator.start();
+                try {
+                    Thread.sleep(tradingTime * 60 * 1000);
+                } catch (InterruptedException e) {
+                    log.warn("main process thread interrupted: " + e.getMessage());
+                }
+                if(!working) return;
+                log.info("process finished");
+                try {
+                    engine.stop();
+                } catch (NMSException e) {
+                    log.warn("exception on engine stop ", e);
+                }
+
+            }
+        };
+        processStarter.start();
     }
 
     private void preOpeningGeneration() {
@@ -155,7 +171,7 @@ public class GeneratorImpl implements Generator {
         try {
             Thread.sleep(preOpeningTime * 60 * 1000);
         } catch (InterruptedException e) {
-            log.warn("exception on waiting for pre-opening time", e);
+            log.warn("main process thread interrupted: " + e.getMessage());
         }
     }
 
@@ -205,7 +221,7 @@ public class GeneratorImpl implements Generator {
     public void restartProcess() throws NMSException {
         log.info("restarting process...");
         engine.restart();
-        stopProcess();
+        //stopProcess();
         //startProcess();
 
     }
@@ -213,6 +229,12 @@ public class GeneratorImpl implements Generator {
     @Override
     public void stopProcess() throws NMSException {
         this.working = false;
+        log.info("stop invoked, interrupting main process thread");
+        try{
+            this.processStarter.interrupt();
+        }catch (Throwable e){
+            log.info("main process thread interrupted exception: " + e.getMessage());
+        }
         engine.stop();
     }
 

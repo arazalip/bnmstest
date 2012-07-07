@@ -18,7 +18,7 @@ public class Settings {
     int matchPercent;
     Set<Symbol> symbols;
     Set<Subscriber> customers;
-    EngineStatus status = EngineStatus.INITIALIZING;
+    volatile EngineStatus status = EngineStatus.INITIALIZING;
 
     public enum EngineStatus{
         INITIALIZING,

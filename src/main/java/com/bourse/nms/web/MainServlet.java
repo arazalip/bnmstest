@@ -186,14 +186,14 @@ public class MainServlet extends HttpServlet {
                         final String[] lineArr = line.split(FILE_COLUMN_SEPARATOR);
                         if (lineArr.length < 3) {
                             log.warn("invalid data line in subscribers file: " + line);
-                            throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "invalid data line in subscribers file. line: " + subscribersLineCounter.get() + " - "+ line);
+                            throw new NMSException(NMSException.ErrorCode.INVALID_SUBSCRIBERS_FILE, "invalid data line in subscribers file. line: " + subscribersLineCounter.get() + " - "+ line);
                         }
                         try{
                             subscribers.add(new Subscriber(Integer.parseInt(lineArr[0]),
                                     Integer.parseInt(lineArr[1]),
                                     Integer.parseInt(lineArr[2])));
                         }catch (Throwable t){
-                            throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "invalid data line in subscribers file. line: " + subscribersLineCounter.get() + " - "+ line);
+                            throw new NMSException(NMSException.ErrorCode.INVALID_SUBSCRIBERS_FILE, "invalid data line in subscribers file. line: " + subscribersLineCounter.get() + " - "+ line);
                         }
                     }
                 }

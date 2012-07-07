@@ -131,11 +131,9 @@ public class MainServlet extends HttpServlet {
         } catch (FileUploadException e) {
             log.warn("file upload exception!", e);
             resp.getWriter().write(new AjaxResponse(new NMSException(NMSException.ErrorCode.FILE_UPLOAD_EXCEPTION, "file upload failed")).toString());
-            throw new ServletException("Cannot parse multipart request.", e);
         } catch (NMSException e) {
             log.warn("settings exception!", e);
             resp.getWriter().write(new AjaxResponse(e).toString());
-            throw new ServletException("InternalServerError.", e);
         }
 
     }
@@ -159,11 +157,20 @@ public class MainServlet extends HttpServlet {
                             throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "invalid data line in symbols file. line: " + symbolsLineCounter.get() + " - "+ line);
                         }
                         try{
+                            final int minimumPriceForBuy = Integer.parseInt(lineArr[3]);
+                            final int maximumPriceForBuy = Integer.parseInt(lineArr[4]);
+                            final int minimumPriceForSell = Integer.parseInt(lineArr[5]);
+                            final int maximumPriceForSell = Integer.parseInt(lineArr[6]);
+                            if((minimumPriceForBuy <= minimumPriceForSell+1 && maximumPriceForBuy <= minimumPriceForSell+1) ||
+                                    (minimumPriceForSell <= minimumPriceForSell+1 && maximumPriceForSell <= minimumPriceForSell+1)){
+                                throw new NMSException(NMSException.ErrorCode.INVALID_SYMBOLS_FILE, "no share on prices for stock: "+lineArr[0]+","+lineArr[1]+","+lineArr[2]);
+                            }
+
                             symbols.add(new Symbol(Integer.parseInt(lineArr[0]), lineArr[1], lineArr[2],
-                                    Integer.parseInt(lineArr[3]),
-                                    Integer.parseInt(lineArr[4]),
-                                    Integer.parseInt(lineArr[5]),
-                                    Integer.parseInt(lineArr[6]),
+                                    minimumPriceForBuy,
+                                    maximumPriceForBuy,
+                                    minimumPriceForSell,
+                                    maximumPriceForSell,
                                     Integer.parseInt(lineArr[7]),
                                     Integer.parseInt(lineArr[8]),
                                     Integer.parseInt(lineArr[9]),

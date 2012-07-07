@@ -43,42 +43,16 @@ public interface Engine {
      */
     public void resume();
 
+    /**
+     * restarts engine
+     */
     public void restart();
 
-    /**
-     * returns put order count
-     * @return put order count
-     */
     public int getPutOrderCount();
-
-    /**
-     * returns trade count
-     * @return trade count
-     */
     public int getTradeCount();
-
-    /**
-     * returns all buy queues sizes
-     * @return buy queue sizes
-     */
     public int getBuyQueueSize();
-
-    /**
-     * returns all sell queue sizes
-     * @return sell queues sizes
-     */
     public int getSellQueueSize();
-
-    /**
-     * returns mean put order per seconds
-     * @return mean put order per second
-     */
     public int getMeanPutOrder();
-
-    /**
-     * returns min put order per second
-     * @return min put order per second
-     */
     public int getMinPutOrder();
     public int getMaxPutOrder();
     public int getMeanTrade();

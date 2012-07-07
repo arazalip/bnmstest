@@ -72,7 +72,6 @@ public class EngineImpl implements Engine {
     private final AtomicInteger minimumPutOrderPerSeconds = new AtomicInteger(Integer.MAX_VALUE);
     private final AtomicInteger maximumPutOrderPerSeconds = new AtomicInteger(0);
     private final AtomicInteger meanPutOrderPerSeconds = new AtomicInteger(0);
-
     private final AtomicInteger minimumTradePerSeconds = new AtomicInteger(Integer.MAX_VALUE);
     private final AtomicInteger maximumTradePerSeconds = new AtomicInteger(0);
     private final AtomicInteger meanTradePerSeconds = new AtomicInteger(0);
@@ -93,6 +92,9 @@ public class EngineImpl implements Engine {
         this.queuesInitialSize = queuesInitialSize;
     }
 
+    /**
+     * notifies engine of pre-opening phase start
+     */
     @Override
     public void startPreOpening() {
         //restart();
@@ -144,6 +146,14 @@ public class EngineImpl implements Engine {
         settings.setStatus(Settings.EngineStatus.PRE_OPENING);
     }
 
+    /**
+     * adds order to engine
+     * @param order the order object
+     * @param orderSide order side (BUY/SELL)
+     * @param stockId order stock id
+     * @param tradePrice trade price for order symbol
+     * @throws NMSException
+     */
     @Override
     public void putOrder(Order order, OrderSide orderSide, int stockId, int tradePrice) throws NMSException {
         final Settings.EngineStatus state = settings.getStatus();
@@ -188,6 +198,9 @@ public class EngineImpl implements Engine {
         }
     }
 
+    /**
+     * notifies engine of trading process started
+     */
     @Override
     public void startTrading() {
         settings.setStatus(Settings.EngineStatus.TRADING);
@@ -205,12 +218,20 @@ public class EngineImpl implements Engine {
         }
     }
 
+    /**
+     * pauses engine
+     * @throws NMSException
+     */
     @Override
     public void pause() throws NMSException {
         prevState = settings.getStatus();
         settings.setStatus(Settings.EngineStatus.PAUSED);
     }
 
+    /**
+     * stops engine
+     * @throws NMSException
+     */
     @Override
     public void stop() throws NMSException {
         int countBuy = 0;
@@ -226,12 +247,18 @@ public class EngineImpl implements Engine {
         acLog.closeWriters();
     }
 
+    /**
+     * resume a paused process
+     */
     @Override
     public void resume() {
         if (prevState != null)
             settings.setStatus(prevState);
     }
 
+    /**
+     * restarts engine. sets status = WAITING
+     */
     @Override
     public void restart() {
         log.info("engine restarted");
@@ -309,7 +336,9 @@ public class EngineImpl implements Engine {
         return totalTradesCost.get();
     }
 
-
+    /**
+     * engine trading threads
+     */
     public class TradingThread extends Thread {
         private final int stockId;
         private final int tradePrice;

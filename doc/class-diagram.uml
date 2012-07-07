@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.bourse.nms.common.NMSException</OriginalElement>
+  <nodes>
+    <node x="58.0" y="0.0">com.bourse.nms.engine.Engine</node>
+    <node x="576.0" y="852.0">com.bourse.nms.generator.GeneratorImpl.CountBasedOrderGenerator</node>
+    <node x="844.4285714285712" y="1043.7142857142858">com.bourse.nms.entity.Settings.EngineStatus</node>
+    <node x="1067.2157019046488" y="429.0287817370802">com.bourse.nms.web.CommandServlet</node>
+    <node x="1352.9573725722212" y="598.7166288537531">com.bourse.nms.log.ActivityLogger</node>
+    <node x="818.1428571428571" y="1263.2857142857144">com.bourse.nms.entity.Order.OrderSide</node>
+    <node x="446.2857142857142" y="1044.571428571429">com.bourse.nms.generator.PriceGenerator</node>
+    <node x="511.6513249305607" y="1264.741330644898">com.bourse.nms.entity.Order</node>
+    <node x="1070.6677634368482" y="588.1085632875967">com.bourse.nms.web.AjaxResponse</node>
+    <node x="1063.0" y="0.0">com.bourse.nms.web.MainServlet</node>
+    <node x="1077.384571189822" y="758.3520539326515">com.bourse.nms.entity.Settings</node>
+    <node x="1382.1317986596093" y="966.4177322558718">com.bourse.nms.entity.Symbol</node>
+    <node x="463.0" y="0.0">com.bourse.nms.generator.Generator</node>
+    <node x="441.3502460029191" y="1131.878443840658">com.bourse.nms.common.NMSException</node>
+    <node x="463.0" y="184.0">com.bourse.nms.generator.GeneratorImpl</node>
+    <node x="32.357142857142875" y="1341.857142857143">com.bourse.nms.engine.EngineImpl.TradingThread</node>
+    <node x="0.0" y="458.0">com.bourse.nms.engine.EngineImpl</node>
+    <node x="288.95130654803006" y="1340.8389503225683">com.bourse.nms.entity.Subscriber</node>
+    <node x="999.8421676897619" y="1265.2266948909562">com.bourse.nms.Launcher</node>
+    <node x="1418.0" y="870.7142857142858">com.bourse.nms.log.ActivityLogger.LogType</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.bourse.nms.log.ActivityLogger.LogType" target="com.bourse.nms.log.ActivityLogger">
+      <point x="0.0" y="-35.5" />
+      <point x="0.0" y="120.5" />
+    </edge>
+    <edge source="com.bourse.nms.generator.GeneratorImpl.CountBasedOrderGenerator" target="com.bourse.nms.generator.GeneratorImpl">
+      <point x="0.0" y="-78.5" />
+      <point x="0.0" y="309.0" />
+    </edge>
+    <edge source="com.bourse.nms.engine.EngineImpl" target="com.bourse.nms.engine.Engine">
+      <point x="0.0" y="-425.5" />
+      <point x="0.0" y="204.0" />
+    </edge>
+    <edge source="com.bourse.nms.generator.GeneratorImpl" target="com.bourse.nms.generator.Generator">
+      <point x="0.0" y="-309.0" />
+      <point x="0.0" y="67.0" />
+    </edge>
+    <edge source="com.bourse.nms.entity.Settings.EngineStatus" target="com.bourse.nms.entity.Settings">
+      <point x="0.0" y="-88.0" />
+      <point x="0.0" y="109.0" />
+    </edge>
+    <edge source="com.bourse.nms.entity.Order.OrderSide" target="com.bourse.nms.entity.Order">
+      <point x="0.0" y="-35.5" />
+      <point x="0.0" y="110.0" />
+    </edge>
+    <edge source="com.bourse.nms.engine.EngineImpl.TradingThread" target="com.bourse.nms.engine.EngineImpl">
+      <point x="0.0" y="-57.5" />
+      <point x="0.0" y="425.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.34551495016611294" x="908.5" y="742.5" />
+  <SelectedNodes>
+    <node>com.bourse.nms.Launcher</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Constructors</Category>
+    <Category>Fields</Category>
+    <Category>Methods</Category>
+    <Category>Inner Classes</Category>
+    <Category>Properties</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

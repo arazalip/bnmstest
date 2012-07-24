@@ -63,7 +63,7 @@ public class GeneratorImpl implements Generator {
         final int price = PriceGenerator.randomPrice(stockId, symbol.getMinimumPriceForBuy(), symbol.getMaximumPriceForBuy(),
                 symbol.getMinimumPriceForSell(), symbol.getMaximumPriceForSell(), isBuy, this.matchPercent);
 
-        return new Order(totalQuantity, (byte) subscriber.getId(), price, subscriber.getPriority());
+        return new Order(totalQuantity, (byte) subscriber.getId(), price, subscriber.getPriority(), orderSide);
     }
 
     private void putToQueue(Order order, OrderSide orderSide, int stockId) throws NMSException {

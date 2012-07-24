@@ -5,6 +5,8 @@ package com.bourse.nms.entity;
  */
 public class Order implements Comparable {
 
+    private static final long MAX_PRICE_VALUE = 0x7FFFFl;
+
     public static enum OrderSide {
         BUY,
         SELL
@@ -23,6 +25,8 @@ public class Order implements Comparable {
      */
     private final long orderCode;
 
+    private final boolean isBuy;
+
     /**
      * Order constructor
      * @param totalQuantity quantity
@@ -30,11 +34,12 @@ public class Order implements Comparable {
      * @param price price
      * @param subscriberPriority subscriber priority
      */
-    public Order(int totalQuantity, byte subscriberId, long price, int subscriberPriority) {
+    public Order(int totalQuantity, byte subscriberId, long price, int subscriberPriority, OrderSide orderSide) {
         this.totalQuantity = totalQuantity;
         this.subscriberId = subscriberId;
+        this.isBuy = orderSide.equals(OrderSide.BUY);
         final long timeFactor = Long.MAX_VALUE - System.nanoTime();
-        this.orderCode = buildOrderCode(price, subscriberPriority, timeFactor);
+        this.orderCode = buildOrderCode(price, subscriberPriority, timeFactor, orderSide);
     }
 
     /**
@@ -58,7 +63,10 @@ public class Order implements Comparable {
      * @return price
      */
     public long getPrice() {
-        return ((orderCode & 0xFFFFF00000000000l) >> 44);
+        if(isBuy)
+            return ((orderCode & 0xFFFFF00000000000l) >> 44);
+        else
+            return MAX_PRICE_VALUE - ((orderCode & 0xFFFFF00000000000l) >> 44);
     }
 
     /**
@@ -95,8 +103,11 @@ public class Order implements Comparable {
      * @param time order put time
      * @return order code
      */
-    public static long buildOrderCode(long price, int priority, long time) {
-        return (price & 0x7FFFFl) << 44 | ((priority & 0x0Fl) << 40) | ((time & 0xFFFFFFFFFF000l) >> 12);
+    public static long buildOrderCode(long price, int priority, long time, OrderSide orderSide) {
+        if(orderSide.equals(OrderSide.BUY))
+            return (price & MAX_PRICE_VALUE) << 44 | ((priority & 0x0Fl) << 40) | ((time & 0xFFFFFFFFFF000l) >> 12);
+        else
+            return ((MAX_PRICE_VALUE - price) & MAX_PRICE_VALUE) << 44 | ((priority & 0x0Fl) << 40) | ((time & 0xFFFFFFFFFF000l) >> 12);
     }
 
     /**
@@ -106,6 +117,5 @@ public class Order implements Comparable {
     @Override
     public String toString() {
         return orderCode + "," + subscriberId + "," + totalQuantity + "," + getPrice();
-
     }
 }

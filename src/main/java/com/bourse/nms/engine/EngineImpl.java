@@ -162,12 +162,7 @@ public class EngineImpl implements Engine {
         }
         if (orderSide.equals(OrderSide.BUY)) {
             if (!buyQueues.containsKey(stockId)) {
-                buyQueues.put(stockId, new PriorityBlockingQueue<>(queuesInitialSize, new Comparator<Order>() {
-                    @Override
-                    public int compare(Order o1, Order o2) {
-                        return o2.compareTo(o1);
-                    }
-                }));
+                buyQueues.put(stockId, new PriorityBlockingQueue<Order>(queuesInitialSize));
             }
             buyQueues.get(stockId).add(order);
             buyQueuesSizes.incrementAndGet();
@@ -386,12 +381,12 @@ public class EngineImpl implements Engine {
                         buyQueue.add(new Order((buyOrder.getTotalQuantity() - sellOrder.getTotalQuantity()),
                                 buyOrder.getSubscriberId(),
                                 buyOrder.getPrice(),
-                                buyOrder.getSubscriberPriority()));
+                                buyOrder.getSubscriberPriority(), OrderSide.BUY));
                     } else if (buyOrder.getTotalQuantity() < sellOrder.getTotalQuantity()) {
                         sellQueue.add(new Order((sellOrder.getTotalQuantity() - buyOrder.getTotalQuantity()),
                                 sellOrder.getSubscriberId(),
                                 sellOrder.getPrice(),
-                                sellOrder.getSubscriberPriority()));
+                                sellOrder.getSubscriberPriority(), OrderSide.SELL));
                     }
                     totalTradesCost.addAndGet(Math.min(buyOrder.getTotalQuantity(), sellOrder.getTotalQuantity()) * tradePrice);
                     acLog.log("T:" + stockId + " b:" + buyOrder + " s:" + sellOrder);
